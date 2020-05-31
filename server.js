@@ -64,12 +64,23 @@ const userDoesNotOwnBoatError = {
 
 
 /*** datastore entities***/
+// name is datastore entity name; URL can be use to build entity's URL; attributes are those required when user POSTs new entity
+const USER = {
+  "name": "User",
+  "URL": "users/",
+  "attributes": ["username", "email"]
+};
 
-// name is datastore entity name; URL can be use to build entity's URL  
-const BOAT = {
-  "name": "Boat",
-  "URL": "boats/",
-  "attributes": ["name", "type", "length"]
+const TRAIL = {
+  "name": "Trail",
+  "URL": "trails/",
+  "attributes": ["name", "length", "difficulty"]
+};
+
+const TRAILHEAD = {
+  "name": "Trailhead",
+  "URL": "trailheads/",
+  "attributes": ["name", "location", "fee"]
 };
 
 
