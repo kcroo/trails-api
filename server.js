@@ -46,6 +46,13 @@ const attributeMissingError = {
   }
 };
 
+const datastoreQueryError = {
+  "code": 400,
+  "data": {
+    "error": "Could not retrieve items from datastore."
+  }
+};
+
 // error if ID token is not valid and user can't be authenticated
 const userNotAuthenticatedError = {
   "code": 401,
@@ -183,14 +190,16 @@ async function makeResponseByType(type, entities) {
   return response;
 }
 
-// get all items of a particular type (e.g. BOAT); no user authentication is needed or checked
+// get all items of a particular type (e.g. USER, TRAILS, TRAILHEADS); no user authentication is needed or checked
 // input: type of item
 // output: code 200 and array of JSON items of that type
 async function getItemsByType(type) {
   // all responses get code 200; data will hold items, self URL, and next URL if needed
   const response = {
     "code": 200,
-    "data": {}
+    "data": {
+      "items": []
+    }
   }
   // get all items of that type, with certain number per page 
   let query = datastore.createQuery(type.name);
@@ -198,17 +207,15 @@ async function getItemsByType(type) {
   // get results, where index 0 is items and index 1 is metadata about query for pagination
   const results = await datastore.runQuery(query)
     .catch(error => {
-      console.log("error getting all boats from datastore", error);
-      return {
-        "code": 400,
-        "data": {}
-      }
+      console.log("error getting all items from datastore", error);
+      return datastoreQueryError;
     });
 
   // if results from database, format each in JSON
   if (results) {
     const items = results[0]; 
-    response.data.items = await makeResponseByType(type, items).catch(error => console.log(error));
+    response.data.items = await makeResponseByType(type, items)
+      .catch(error => console.log("error making response by time", error));
   }
   
   return response;
