@@ -286,35 +286,6 @@ async function postItem(type, idToken, body){
   }
 }
 
-// gets all boats that belong to a particular owner
-// input: user id token passed in authorization header
-// output on success: returns code 200 and array of boats belonging to that owner, each JSON formatted
-// errors: 401 if owner's ID is missing or invalid
-async function getOwnersBoats(idToken) {
-  // authenticate owner by token
-  const userData = await verifyUser(idToken)
-    .catch( error => {
-      console.log("error authenticating user", error);
-      return userNotAuthenticatedError;
-    });
-
-  if (userData === false) {
-    return userNotAuthenticatedError;
-  }
-
-  // get array of boats with
-  const query = datastore.createQuery('Boat').filter('owner', '=', userData.payload.sub);
-  const [boats] = await datastore.runQuery(query).catch(error => console.log(error));
-  const boatsJSON = boats.map(makeBoatFormatJSON);
-
-  return {
-    "code": 200,
-    "data": {
-      "boats": boatsJSON
-    }
-  }
-}
-
 // put an existing entity for an authenticated user- requires all attributes to be provided and replaced
 // input: ID, type, and data to update
 // output on error: error if incomplete data, entity doesn't exist, or user can't be authenticated
@@ -377,7 +348,7 @@ async function putEntity(id, type, idToken, body) {
 // patch an existing entity - only those attributes provided in body will be replaced
 // input: ID, type, and data to update
 // output: error if entity doesn't exist; otherwise updates datastore and returns object of data, ID, self URL, and status code
-async function patchEntity(id, type, body) {
+async function patchEntity(id, type, idToken, body) {
   // will save changes to this object
   let jsonEntity = {
     "code": 200,
