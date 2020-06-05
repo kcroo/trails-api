@@ -246,15 +246,11 @@ async function postItem(type, idToken, body){
     }
   }
 
-  // const userData = await verifyUser(idToken)
-  //   .catch( error => {
-  //     console.log("error authenticating user", error);
-  //     return userNotAuthenticatedError;
-  //   });
+  const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
 
-  // if (userData === false) {
-  //   return userNotAuthenticatedError;
-  // }
+  if (userData === false) {
+    return userNotAuthenticatedError;
+  }
 
   // no errors: create the item's key -> needed to save to datastore
   const key = datastore.key(type.name);
