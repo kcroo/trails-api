@@ -19,6 +19,7 @@ const bodyParser = require('body-parser');
 const fs = require("fs");
 const nunjucks = require('nunjucks');
 const request = require("request-promise");
+const jwtDecode = require('jwt-decode');
 const {Datastore} = require('@google-cloud/datastore');
 const {google} = require('googleapis');
 
@@ -416,19 +417,6 @@ async function deleteBoat(idToken, boatID) {
   }
 }
 
-
-// *** routes *** 
-
-// welcome page: sends authentication request to google
-app.get('/', async(req, res) => {
-  let data = {
-    "oauthURL": oauthURL
-  };
-
-  res.render("index.html", data);
-});
-
-
 // returns user data from the Google People API 
 // input: tokens object from google that contains the access token 
 // output: if successful, returns JSON containing user's name and other info; otherwise prints error to console and returns empty object
@@ -449,6 +437,18 @@ async function getUserData(token) {
   return JSON.parse(result);
 }
 
+
+// *** routes *** 
+
+// welcome page: sends authentication request to google
+app.get('/', async(req, res) => {
+  let data = {
+    "oauthURL": oauthURL
+  };
+
+  res.render("index.html", data);
+});
+
 // display user info
 app.get('/user', async(req, res) => {
   // error if no query parameters sent by google --> access denied
@@ -465,12 +465,24 @@ app.get('/user', async(req, res) => {
   // get user data from people API
   const userData = await getUserData(tokens).catch(error => console.log(error));
 
-  // format data and send
-  const responseData = {
-    firstName: userData.names[0].givenName,
-    lastName: userData.names[0].familyName,
-    idToken: tokens.id_token,
+  // prepare response variables
+  const responseData = {};
+  let sub = "";
+
+  // decode JWT to get sub -> if error, display it
+  try {
+    sub = jwtDecode(tokens.id_token).sub;
+  } catch(error) {
+    console.log(error);
+    responseData.error = error;
+    res.render("user.html", responseData);
   }
+
+  // format data and send
+  responseData.firstName = userData.names[0].givenName;
+  responseData.lastName = userData.names[0].familyName;
+  responseData.jwt = tokens.id_token;
+  responseData.userID = sub;
 
   res.render("user.html", responseData);
 });

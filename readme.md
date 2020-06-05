@@ -37,14 +37,13 @@ https://console.cloud.google.com/datastore/entities;kind=Boat;ns=__$DEFAULT$__/q
 
 ### oauth consent screen 
 application type: public 
-application name: hw7-493-corraok
+application name: final-493-corraok
 scopes: default (email, profile, openid)
 NO PHOTO
-URL: https://final-493-corraok.wl.r.appspot.com
+URL: project URL
 
-
-### setup datastore and use by localhost
-https://cloud.google.com/datastore/docs/reference/libraries
-- create new service account for authentication 
-- download JSON file 
-- export GOOGLE_APPLICATION_CREDENTIALS="final-493-corraok-513f1840763c.json"
+### create oauth client ID 
+application type: web application
+name: final-493-corraok
+authorized javascript origins: http://localhost:8001
+authorized redirect URIs: http://localhost:8001/users
