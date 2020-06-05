@@ -71,23 +71,28 @@ const userDoesNotOwnBoatError = {
 
 
 /*** datastore entities***/
+const BOAT = {
+  "name": "Boat",
+  "URL": "boat/",
+  "attributes": ["name", "length", "type"]
+};
 // name is datastore entity name; URL can be use to build entity's URL; attributes are those required when user POSTs new entity
 const USER = {
   "name": "User",
   "URL": "users/",
-  "attributes": ["username", "email"]
+  "requiredAttributes": ["username", "email"]
 };
 
 const TRAIL = {
   "name": "Trail",
   "URL": "trails/",
-  "attributes": ["name", "length", "difficulty"]
+  "requiredAttributes": ["name", "length", "difficulty"]
 };
 
 const TRAILHEAD = {
   "name": "Trailhead",
   "URL": "trailheads/",
-  "attributes": ["name", "location", "fee"]
+  "requiredAttributes": ["name", "location", "fee"]
 };
 
 
@@ -224,46 +229,52 @@ async function getItemsByType(type) {
 
 /*** route functions ***/
 
-// post new boat 
+// posts new item. client must send all required attributes for item in body.
 // input: name and type (strings); length (int)
 // output on success: returns code 201 and formatted boat data if successful (name, type, length, ID, and self URL)
 // error: 400 if name, type, or length are missing; 401 if user can't be authenticated by ID token
-async function postBoat(idToken, body){
-  // check for errors (see above)
-  if (anyBoatAttributeIsMissing(body)) { 
-    return attributeMissingError;
+async function postItem(type, idToken, body){
+  // check if any required attributes are missing from post
+  for (const attr of type.requiredAttributes) {
+    if (!(attr in body)) {
+      return attributeMissingError
+    }
   }
 
-  const userData = await verifyUser(idToken)
-    .catch( error => {
-      console.log("error authenticating user", error);
-      return userNotAuthenticatedError;
+  // const userData = await verifyUser(idToken)
+  //   .catch( error => {
+  //     console.log("error authenticating user", error);
+  //     return userNotAuthenticatedError;
+  //   });
+
+  // if (userData === false) {
+  //   return userNotAuthenticatedError;
+  // }
+
+  // no errors: create the item's key -> needed to save to datastore
+  const key = datastore.key(type.name);
+
+  // create a new item that holds all of the attributes of that item
+  let newItem = {};
+
+  for (const attr of type.requiredAttributes) {
+    newItem[attr] = body[attr];
+  }
+
+  // save new item to datastore 
+  await datastore.save({ "key": key, "data": newItem })
+    .catch(error => {
+      console.log("error saving to datastore: ", error)
     });
 
-  if (userData === false) {
-    return userNotAuthenticatedError;
-  }
-
-  // no errors: create the boat, add to datastore, and return code and data
-  const key = datastore.key(BOAT.name);
-  const newBoat = {
-    "name": body.name,
-    "type": body.type,
-    "length": body.length,
-    "owner": userData.payload.sub
-  };
-
-  // save new boat to datastore 
-  await datastore.save({ "key": key, "data": newBoat }).catch(error => console.log("error saving to datastore: ", error));
-
   // response also needs boat ID and self URL
-  newBoat.id = key.id;
-  newBoat.self = makeSelfURL(key.id, BOAT);
+  newItem.id = key.id;
+  newItem.self = makeSelfURL(key.id, type);
 
   // success: code 201 and new boat data
   return {
     "code": 201,
-    "data": newBoat
+    "data": newItem 
   }
 }
 
@@ -394,6 +405,12 @@ app.get('/boats', async function(req, res){
 // creates new boat if all data is provided in body; request and response must be JSON; otherwise error message
 app.post('/boats', async(req, res) => {
   const result = await postBoat(req.headers.authorization, req.body).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
+// creates new trail if all data is provided in body; request and response must be JSON; otherwise error message
+app.post('/trails', async(req, res) => {
+  const result = await postItem(TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
