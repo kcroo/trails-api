@@ -70,6 +70,13 @@ const userDoesNotOwnBoatError = {
   }
 };
 
+// error when client requests an ID that doesn't exist in datastore
+const itemNotFoundError = {
+  "code": 404,
+  "data": {
+    "error": "No object with this ID exists"
+  }
+};
 
 /*** datastore entities***/
 const BOAT = {
@@ -304,6 +311,46 @@ async function getOwnersBoats(idToken) {
   }
 }
 
+// put an existing entity - requires all attributes to be provided and replaced
+// input: ID, type, and data to update (name, type, and length)
+// output: error if incomplete data or entity doesn't exist; otherwise updates datastore and returns object of data, ID, self URL, and status code
+async function putEntity(id, type, body) {
+  // will save changes to this object
+  let updatedEntity = {
+    "code": 200,
+    "data": {}
+  };
+
+  // return error if any required attribute of that type is missing
+  for (const attr of type.requiredAttributes) {
+    if (!(attr in body)) {
+      return attributeMissingError;
+    }
+    updatedEntity.data[attr] = body[attr];
+  }
+
+  // get item from datastore - error if item's ID can't be found
+  const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
+
+  if (!entity) {
+    return itemNotFoundError;
+  }
+
+  // update entity according to body data sent by client
+  for (const attr in body) {
+    entity[attr] = body[attr];
+  }
+
+  // update entity in datastore
+  await datastore.update(entity).catch(error => console.log(error));
+
+  // add information to send back to client
+  updatedEntity.data.id = id;
+  updatedEntity.data.self = makeSelfURL(id, type);
+
+  return updatedEntity;
+}
+
 // delete an existing boat, if the user is authenticated and owns the boat; otherwise returns error code 403
 // input: boatID to delete
 // output on success: code 204 after boat is deleted
@@ -402,6 +449,12 @@ app.get('/trails', async function(req, res){
 // creates new trail if all data is provided in body; request and response must be JSON; otherwise error message
 app.post('/trails', async(req, res) => {
   const result = await postItem(TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
+// replaces existing trails's information with that provided in body
+app.put("/trails/:trailID", async(req, res) => {
+  const result = await putEntity(req.params.trailID, TRAIL, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
