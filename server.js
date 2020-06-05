@@ -63,11 +63,11 @@ const userNotAuthenticatedError = {
   }
 }
 
-// error when authenticated user tries to delete boat that doesn't exist 
-const userDoesNotOwnBoatError = {
+// error when authenticated user tries to modify an item that they don't own
+const forbiddenError = {
   "code": 403,
   "data": {
-    "error": "The authenticated user owns no boat with that boat ID."
+    "error": "That action is forbidden for the authenticated user."
   }
 };
 
@@ -95,13 +95,15 @@ const USER = {
 const TRAIL = {
   "name": "Trail",
   "URL": "trails/",
-  "requiredAttributes": ["name", "length", "difficulty"]
+  "requiredAttributes": ["name", "length", "difficulty"],
+  "authenticated": true
 };
 
 const TRAILHEAD = {
   "name": "Trailhead",
   "URL": "trailheads/",
-  "requiredAttributes": ["name", "location", "fee"]
+  "requiredAttributes": ["name", "location", "fee"],
+  "authenticated": false
 };
 
 
@@ -246,32 +248,37 @@ async function postItem(type, idToken, body){
     }
   }
 
-  const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
-
-  if (userData === false) {
-    return userNotAuthenticatedError;
-  }
-
-  // no errors: create the item's key -> needed to save to datastore
-  const key = datastore.key(type.name);
-
-  // create a new item that holds all of the attributes of that item
+  // will build new item here
   let newItem = {};
 
+  // if this entity is protected, authenticate the user and set the item's user ID
+  if (type.authenticated) {
+    const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+
+    if (userData === false) {
+      return userNotAuthenticatedError;
+    }
+
+    newItem.userId = userData.payload.sub;
+  }
+
+  // set all required attributes for this type
   for (const attr of type.requiredAttributes) {
     newItem[attr] = body[attr];
   }
 
-  // save new item to datastore 
+  // make key and self URL attribute for all items
+  const key = datastore.key(type.name);
+  
   await datastore.save({ "key": key, "data": newItem })
     .catch(error => {
       console.log("error saving to datastore: ", error)
     });
 
-  // response also needs boat ID and self URL
+  // response to client also needs item's ID and self URL
   newItem.id = key.id;
   newItem.self = makeSelfURL(key.id, type);
-
+  
   // success: code 201 and new boat data
   return {
     "code": 201,
@@ -308,10 +315,11 @@ async function getOwnersBoats(idToken) {
   }
 }
 
-// put an existing entity - requires all attributes to be provided and replaced
+// put an existing entity for an authenticated user- requires all attributes to be provided and replaced
 // input: ID, type, and data to update
-// output: error if incomplete data or entity doesn't exist; otherwise updates datastore and returns object of data, ID, self URL, and status code
-async function putEntity(id, type, body) {
+// output on error: error if incomplete data, entity doesn't exist, or user can't be authenticated
+// output on success: updates datastore and returns object of data, ID, self URL, and status code
+async function putEntity(id, type, idToken, body) {
   // will save changes to this object
   let updatedEntity = {
     "code": 200,
@@ -326,11 +334,23 @@ async function putEntity(id, type, body) {
     updatedEntity.data[attr] = body[attr];
   }
 
+  // return error if user can't be authenticated
+  const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+
+  if (userData === false) {
+    return userNotAuthenticatedError;
+  }
+
   // get item from datastore - error if item's ID can't be found
   const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
 
   if (!entity) {
     return itemNotFoundError;
+  }
+
+  // return error if item doesn't belong to the authenticated user
+  if (entity.userId !== undefined && entity.userId !== userData.payload.sub) {
+    return forbiddenError;
   }
 
   // update entity according to body data sent by client (use updatedEntity -- body may have additional attributes that you don't want)
@@ -344,6 +364,7 @@ async function putEntity(id, type, body) {
   // add information to send back to client
   updatedEntity.data.id = id;
   updatedEntity.data.self = makeSelfURL(id, type);
+  updatedEntity.data.userId = userData.payload.sub;
 
   return updatedEntity;
 }
@@ -497,7 +518,7 @@ app.post('/trails', async(req, res) => {
 
 // replaces existing trails's information with that provided in body
 app.put("/trails/:trailID", async(req, res) => {
-  const result = await putEntity(req.params.trailID, TRAIL, req.body).catch(error => console.log(error));
+  const result = await putEntity(req.params.trailID, TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
