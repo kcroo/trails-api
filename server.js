@@ -336,9 +336,9 @@ async function putEntity(id, type, body) {
     return itemNotFoundError;
   }
 
-  // update entity according to body data sent by client
-  for (const attr in body) {
-    entity[attr] = body[attr];
+  // update entity according to body data sent by client (use updatedEntity -- body may have additional attributes that you don't want)
+  for (const attr in updatedEntity.data) {
+    entity[attr] = updatedEntity.data[attr];
   }
 
   // update entity in datastore
