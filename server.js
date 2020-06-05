@@ -10,6 +10,7 @@ people API discovery docs: https://developers.google.com/people/api/rest
 main source - google API library - oauth: https://github.com/googleapis/google-api-nodejs-client/#authentication-and-authorization
 authentication with id_token: https://developers.google.com/identity/sign-in/web/backend-auth
 slice to remove part of string: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice
+see if key exists in object: https://stackoverflow.com/questions/1098040/checking-if-a-key-exists-in-a-javascript-object
 */
 
 // set up necessary libraries
@@ -143,10 +144,6 @@ async function verifyUser(idToken) {
 
 
 /*** helper functions ***/
-// returns true if ANY boat attribute (name, type, or length) is missing from the request's body 
-function anyBoatAttributeIsMissing(body) {
-  return body.name === undefined || body.type === undefined || body.length === undefined;
-}
 
 // builds and returns self URL for an entity (ex: http://mysite.com/boats/12345)
 // input: ID of entity; type of entity (e.g. BOAT)
@@ -164,19 +161,19 @@ async function getEntityFromDatastore(id, type) {
   return entity;
 }
 
-// returns a boat's information in JSON
-// input: boatEntity from datastore 
+// returns a trails's information in JSON
+// input: trailEntity from datastore 
 // output: object containing ID, properties, and self URL
-function makeBoatFormatJSON(boatEntity) {
+function makeTrailFormatJSON(trailEntity) {
   return {
-    "name": boatEntity.name,
-    "type": boatEntity.type,
-    "length": boatEntity.length,
-    "owner": boatEntity.owner,
-    "id": boatEntity[Datastore.KEY].id,
-    "self": makeSelfURL(boatEntity[Datastore.KEY].id, BOAT)
+    "name": trailEntity.name,
+    "length": trailEntity.length,
+    "difficulty": trailEntity.difficulty,
+    "id": trailEntity[Datastore.KEY].id,
+    "self": makeSelfURL(trailEntity[Datastore.KEY].id, TRAIL)
   }
 }
+
 
 // returns a formatted array of entitites according to its type 
 // input: type (e.g. BOAT); array of entities from datastore 
@@ -184,10 +181,10 @@ function makeBoatFormatJSON(boatEntity) {
 async function makeResponseByType(type, entities) {
   let response = {};
 
-  if (type.name == "Boat") {
+  if (type.name == "Trail") {
     response = Promise.all(
-      entities.map( async (boat) => {
-        return makeBoatFormatJSON(boat);
+      entities.map( async (trail) => {
+        return makeTrailFormatJSON(trail);
       })
     );
   }
@@ -396,15 +393,9 @@ app.get('/user', async(req, res) => {
   res.render("user.html", responseData);
 });
 
-// returns array of all boats in JSON, no authentication required
-app.get('/boats', async function(req, res){
-  const result = await getItemsByType(BOAT);
-  res.status(result.code).send(result.data);
-});
-
-// creates new boat if all data is provided in body; request and response must be JSON; otherwise error message
-app.post('/boats', async(req, res) => {
-  const result = await postBoat(req.headers.authorization, req.body).catch(error => console.log(error));
+// returns array of all trails in JSON, no authentication required
+app.get('/trails', async function(req, res){
+  const result = await getItemsByType(TRAIL);
   res.status(result.code).send(result.data);
 });
 
