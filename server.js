@@ -96,14 +96,14 @@ const TRAIL = {
   "name": "Trail",
   "URL": "trails/",
   "requiredAttributes": ["name", "length", "difficulty"],
-  "authenticated": true
+  "protected": true
 };
 
 const TRAILHEAD = {
   "name": "Trailhead",
   "URL": "trailheads/",
   "requiredAttributes": ["name", "location", "fee"],
-  "authenticated": false
+  "protected": false
 };
 
 
@@ -252,7 +252,7 @@ async function postItem(type, idToken, body){
   let newItem = {};
 
   // if this entity is protected, authenticate the user and set the item's user ID
-  if (type.authenticated) {
+  if (type.protected) {
     const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
 
     if (userData === false) {
@@ -334,11 +334,16 @@ async function putEntity(id, type, idToken, body) {
     updatedEntity.data[attr] = body[attr];
   }
 
-  // return error if user can't be authenticated
-  const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+  // will fill out this object if the resource is protected
+  let userData = null;
 
-  if (userData === false) {
-    return userNotAuthenticatedError;
+  // if item is protected, return error if user can't be authenticated
+  if (type.protected) {
+    userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+
+    if (userData === false) {
+      return userNotAuthenticatedError;
+    }
   }
 
   // get item from datastore - error if item's ID can't be found
@@ -348,8 +353,8 @@ async function putEntity(id, type, idToken, body) {
     return itemNotFoundError;
   }
 
-  // return error if item doesn't belong to the authenticated user
-  if (entity.userId !== undefined && entity.userId !== userData.payload.sub) {
+  // return error if item is protected and doesn't belong to the authenticated user
+  if (type.protected && entity.userId !== userData.payload.sub) {
     return forbiddenError;
   }
 
