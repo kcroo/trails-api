@@ -312,7 +312,7 @@ async function getOwnersBoats(idToken) {
 }
 
 // put an existing entity - requires all attributes to be provided and replaced
-// input: ID, type, and data to update (name, type, and length)
+// input: ID, type, and data to update
 // output: error if incomplete data or entity doesn't exist; otherwise updates datastore and returns object of data, ID, self URL, and status code
 async function putEntity(id, type, body) {
   // will save changes to this object
@@ -349,6 +349,41 @@ async function putEntity(id, type, body) {
   updatedEntity.data.self = makeSelfURL(id, type);
 
   return updatedEntity;
+}
+
+// patch an existing entity - only those attributes provided in body will be replaced
+// input: ID, type, and data to update
+// output: error if entity doesn't exist; otherwise updates datastore and returns object of data, ID, self URL, and status code
+async function patchEntity(id, type, body) {
+  // will save changes to this object
+  let jsonEntity = {
+    "code": 200,
+    "data": {}
+  };
+
+  // get item from datastore - error if item's ID can't be found
+  const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
+
+  if (!entity) {
+    return itemNotFoundError;
+  }
+
+  // update all entity attributes that are also in the body; copy data to jsonEntity -> send to client
+  for (const attr in entity) {
+    if (attr in body) {
+      entity[attr] = body[attr];
+    }
+    jsonEntity.data[attr] = entity[attr];
+  }
+
+  // save changes to datastore
+  await datastore.update(entity).catch(error => console.log(error));
+
+  // add information to send back to client
+  jsonEntity.data.id = id;
+  jsonEntity.data.self = makeSelfURL(id, type);
+
+  return jsonEntity;
 }
 
 // delete an existing boat, if the user is authenticated and owns the boat; otherwise returns error code 403
@@ -455,6 +490,12 @@ app.post('/trails', async(req, res) => {
 // replaces existing trails's information with that provided in body
 app.put("/trails/:trailID", async(req, res) => {
   const result = await putEntity(req.params.trailID, TRAIL, req.body).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
+// edits some or all of a trails's information
+app.patch("/trails/:trailID", async(req, res) => {
+  const result = await patchEntity(req.params.trailID, TRAIL, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
