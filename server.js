@@ -399,28 +399,32 @@ async function patchEntity(id, type, idToken, body) {
   return updatedEntity;
 }
 
-// delete an existing boat, if the user is authenticated and owns the boat; otherwise returns error code 403
-// input: boatID to delete
-// output on success: code 204 after boat is deleted
-// output on error: code 403 if user doesn't own boat or boat doesn't exist
-async function deleteBoat(idToken, boatID) {
-  // error if can't authenticate user
-  const userData = await verifyUser(idToken).catch( error => console.log("error authenticating user", error));
+// delete an existing entity; if it's protected, it authenticates the user and checks if the user owns the entity
+// input: trailId to delete
+// output on success: code 204 after entity is deleted
+// output on error: code 403 if user doesn't own the entity; 404 if entity doesn't exist
+async function deleteEntity(id, type, idToken) {
+  // get entity with that ID from datastore
+  const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
 
-  if (!userData || userData === false) {
-    return userNotAuthenticatedError;
+  // 404 if entity can't be found
+  if (!entity) {
+    return itemNotFoundError;
   }
 
-  // get boat with that ID from datastore
-  const boatEntity = await getEntityFromDatastore(boatID, BOAT).catch(error => console.log(error));
+  // if the entity is protected, authenticate user and verify they own it; otherwise return error
+  if (type.protected) {
+    const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
 
-  // if boat doesn't exist or authenticated user doesn't own it, return error
-  if (!boatEntity || (boatEntity.owner !== userData.payload.sub)) {
-    return userDoesNotOwnBoatError;
-  } 
+    if (userData === false) {
+      return userNotAuthenticatedError;
+    } else if (entity.userId !== userData.payload.sub) {
+      return forbiddenError;
+    }
+  }
 
-  // delete boat
-  const key = boatEntity[Datastore.KEY];
+  // delete entity
+  const key = entity[Datastore.KEY];
   await datastore.delete(key).catch(error => console.log(error));
 
   return {
@@ -512,26 +516,26 @@ app.post('/trails', async(req, res) => {
 });
 
 // replaces existing trails's information with that provided in body
-app.put("/trails/:trailID", async(req, res) => {
-  const result = await putEntity(req.params.trailID, TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+app.put("/trails/:trailId", async(req, res) => {
+  const result = await putEntity(req.params.trailId, TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
 // edits some or all of a trails's information
-app.patch("/trails/:trailID", async(req, res) => {
-  const result = await patchEntity(req.params.trailID, TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+app.patch("/trails/:trailId", async(req, res) => {
+  const result = await patchEntity(req.params.trailId, TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
+// deletes a trail from datastore if the authenticated user owns it
+app.delete("/trails/:trailId", async(req, res) => {
+  const result = await deleteEntity(req.params.trailId, TRAIL, req.headers.authorization).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
 // returns information about an owner's boats
 app.get('/owners/:ownerID/boats', async(req, res) => {
   const result = await getOwnersBoats(req.headers.authorization).catch(error => console.log(error));
-  res.status(result.code).send(result.data);
-});
-
-// deletes a boat from datastore if the authenticated user owns it
-app.delete("/boats/:boatID", async(req, res) => {
-  const result = await deleteBoat(req.headers.authorization, req.params.boatID).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
