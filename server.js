@@ -350,10 +350,23 @@ async function putEntity(id, type, idToken, body) {
 // output: error if entity doesn't exist; otherwise updates datastore and returns object of data, ID, self URL, and status code
 async function patchEntity(id, type, idToken, body) {
   // will save changes to this object
-  let jsonEntity = {
+  let updatedEntity = {
     "code": 200,
     "data": {}
   };
+
+  let userData = null;
+
+  // if item is protected, return error if user can't be authenticated; otherwise set userID
+  if (type.protected) {
+    userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+
+    if (userData === false) {
+      return userNotAuthenticatedError;
+    }
+
+    updatedEntity.data.userId = userData.payload.sub;
+  }
 
   // get item from datastore - error if item's ID can't be found
   const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
@@ -362,22 +375,28 @@ async function patchEntity(id, type, idToken, body) {
     return itemNotFoundError;
   }
 
-  // update all entity attributes that are also in the body; copy data to jsonEntity -> send to client
-  for (const attr in entity) {
+  // return error if item is protected and doesn't belong to the authenticated user
+  if (type.protected && entity.userId !== userData.payload.sub) {
+    return forbiddenError;
+  }
+
+  // update attributes that are in body
+  for (const attr of type.requiredAttributes) {
     if (attr in body) {
-      entity[attr] = body[attr];
+      updatedEntity.data[attr] = body[attr];
+    } else {
+      updatedEntity.data[attr] = entity[attr];
     }
-    jsonEntity.data[attr] = entity[attr];
   }
 
   // save changes to datastore
   await datastore.update(entity).catch(error => console.log(error));
 
   // add information to send back to client
-  jsonEntity.data.id = id;
-  jsonEntity.data.self = makeSelfURL(id, type);
+  updatedEntity.data.id = id;
+  updatedEntity.data.self = makeSelfURL(id, type);
 
-  return jsonEntity;
+  return updatedEntity;
 }
 
 // delete an existing boat, if the user is authenticated and owns the boat; otherwise returns error code 403
@@ -500,7 +519,7 @@ app.put("/trails/:trailID", async(req, res) => {
 
 // edits some or all of a trails's information
 app.patch("/trails/:trailID", async(req, res) => {
-  const result = await patchEntity(req.params.trailID, TRAIL, req.body).catch(error => console.log(error));
+  const result = await patchEntity(req.params.trailID, TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
