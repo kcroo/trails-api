@@ -86,11 +86,6 @@ const itemNotFoundError = {
 };
 
 /*** datastore entities***/
-const BOAT = {
-  "name": "Boat",
-  "URL": "boat/",
-  "attributes": ["name", "length", "type"]
-};
 // name is datastore entity name; URL can be use to build entity's URL; attributes are those required when user POSTs new entity
 const USER = {
   "name": "User",
@@ -190,17 +185,36 @@ function makeTrailFormatJSON(trailEntity) {
   }
 }
 
+// returns a trailheads's information in JSON
+// input: trailheadEntity from datastore 
+// output: object containing ID, properties, and self URL
+function makeTrailheadFormatJSON(trailheadEntity) {
+  return {
+    "name": trailheadEntity.name,
+    "location": trailheadEntity.location,
+    "fee": trailheadEntity.fee,
+    "id": trailEntity[Datastore.KEY].id,
+    "self": makeSelfURL(trailEntity[Datastore.KEY].id, TRAIL)
+  }
+}
+
 
 // returns a formatted array of entitites according to its type 
-// input: type (e.g. BOAT); array of entities from datastore 
+// input: type (e.g. TRAIL, TRAILHEAD); array of entities from datastore 
 // output: array of information formatted in JSON, which includes IDs, properties, and self URLs for each entity
 async function makeResponseByType(type, entities) {
   let response = {};
 
-  if (type.name == "Trail") {
+  if (type.name === 'Trail') {
     response = Promise.all(
       entities.map( async (trail) => {
         return makeTrailFormatJSON(trail);
+      })
+    );
+  } else if (type.name === 'Trailhead') {
+    response = Promise.all(
+      entities.map( async (trailhead) => {
+        return makeTrailheadFormatJSON(trailhead);
       })
     );
   }
@@ -319,7 +333,7 @@ async function getItemsByType(type) {
 // input: name and type (strings); length (int)
 // output on success: returns code 201 and formatted boat data if successful (name, type, length, ID, and self URL)
 // error: 400 if name, type, or length are missing; 401 if user can't be authenticated by ID token
-async function postItem(type, idToken, body){
+async function postEntity(type, idToken, body){
   // check if any required attributes are missing from post
   for (const attr of type.requiredAttributes) {
     if (!(attr in body)) {
@@ -328,7 +342,7 @@ async function postItem(type, idToken, body){
   }
 
   // will build new item here
-  let newItem = {};
+  let newEntity = {};
 
   // if this entity is protected, authenticate the user and set the item's user ID
   if (type.protected) {
@@ -338,30 +352,30 @@ async function postItem(type, idToken, body){
       return userNotAuthenticatedError;
     }
 
-    newItem.userId = userData.payload.sub;
+    newEntity.userId = userData.payload.sub;
   }
 
   // set all required attributes for this type
   for (const attr of type.requiredAttributes) {
-    newItem[attr] = body[attr];
+    newEntity[attr] = body[attr];
   }
 
   // make key and self URL attribute for all items
   const key = datastore.key(type.name);
   
-  await datastore.save({ "key": key, "data": newItem })
+  await datastore.save({ "key": key, "data": newEntity })
     .catch(error => {
       console.log("error saving to datastore: ", error)
     });
 
   // response to client also needs item's ID and self URL
-  newItem.id = key.id;
-  newItem.self = makeSelfURL(key.id, type);
+  newEntity.id = key.id;
+  newEntity.self = makeSelfURL(key.id, type);
   
   // success: code 201 and new boat data
   return {
     "code": 201,
-    "data": newItem 
+    "data": newEntity 
   }
 }
 
@@ -590,7 +604,13 @@ app.get('/trails', async function(req, res){
 
 // creates new trail if all data is provided in body; request and response must be JSON; otherwise error message
 app.post('/trails', async(req, res) => {
-  const result = await postItem(TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+  const result = await postEntity(TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
+// creates new trailhead if all data is provided in body; request and response must be JSON; otherwise error message
+app.post('/trailheads', async(req, res) => {
+  const result = await postEntity(TRAILHEAD, req.headers.authorization, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
