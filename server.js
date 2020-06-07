@@ -826,6 +826,12 @@ app.delete("/trails/:trailId", async(req, res) => {
   res.status(result.code).send(result.data);
 });
 
+// deletes a trailhead from datastore. also removes it from any trail it is assigned to. no authentication
+app.delete("/trailheads/:trailheadId", async(req, res) => {
+  const result = await deleteEntity(req.params.trailheadId, TRAILHEAD, req.headers.authorization).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
 // adds a trailhead to a trail, if the authenticated user owns that trail
 app.put('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
   const result = await assignTrailheadToTrail(req.params.trailId, req.params.trailheadId, req.headers.authorization).catch(error => console.log(error));
