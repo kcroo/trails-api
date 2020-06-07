@@ -14,6 +14,7 @@ see if key exists in object: https://stackoverflow.com/questions/1098040/checkin
 pagination: https://stackoverflow.com/questions/44184469/google-cloud-datastore-how-to-query-for-more-results
 pagination: https://cloud.google.com/datastore/docs/concepts/queries?authuser=1#cursors_limits_and_offsets
 key-only queries to get total number of entities of a certain type: https://cloud.google.com/datastore/docs/concepts/queries
+sending postman requests within test with headers: https://gist.github.com/madebysid/b57985b0649d3407a7aa9de1bd327990
 */
 
 // set up necessary libraries
@@ -82,6 +83,14 @@ const alreadyExistsError = {
   "code": 403,
   "data": {
     "error": "That content already exists and cannot be added again."
+  }
+};
+
+// error when authenticated user tries to add trailhead to trail that already exists
+const relationshipDoesNotExistError = {
+  "code": 403,
+  "data": {
+    "error": "That relationship does not exist."
   }
 };
 
@@ -613,9 +622,53 @@ async function assignTrailheadToTrail(trailId, trailheadId, idToken) {
 
   // add trail ID to trailhead and trailhead ID to trail; update in datastore
   trailEntity.trailheads.push(trailheadEntity[Datastore.KEY].id);
-  console.log(trailEntity.trailheads);
   trailheadEntity.trails.push(trailEntity[Datastore.KEY].id);
-  console.log(trailheadEntity.trails);
+
+  await datastore.update(trailEntity).catch(error => console.log(error));
+  await datastore.update(trailheadEntity).catch(error => console.log(error));
+
+  return {
+    "code": 204,
+    "data": {}
+  }
+}
+
+// removes trailhead to trail, if the authenticated user owns that trail
+// input: trailId and trailheadId
+// output on error: if user can't be authenticated; if trail or trailhead doesn't exist; if user doesn't own trail
+// output on success: trailhead ID is added to trail; trail ID is added to trailhead; returns 204 and no body
+async function removeTrailheadFromTrail(trailId, trailheadId, idToken) { 
+  // error if user can't be authenticated 
+  const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+
+  if (userData === false) {
+    return userNotAuthenticatedError;
+  }
+
+  // get trail and trailhead from datastore
+  const trailEntity = await getEntityFromDatastore(trailId, TRAIL).catch(error => console.log(error));
+  const trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD).catch(error => console.log(error));
+
+  // error if trail or trailhead doesn't exist; or if trailhead isn't already assigned to trail and vice versa
+  if (!trailEntity || !trailheadEntity) {
+    return itemNotFoundError;
+  } else if (!(trailEntity.trailheads.includes(trailheadEntity[Datastore.KEY].id)) && !(trailheadEntity.trails.includes(trailEntity[Datastore.KEY].id))){
+    return relationshipDoesNotExistError;
+  } 
+
+  // error if user doesn't own this trail
+  if (trailEntity.userId !== userData.payload.sub) {
+    return forbiddenError;
+  }
+
+  // removes trail ID from trailhead and trailhead ID from trail; updates both in datastore
+  trailEntity.trailheads = trailEntity.trailheads.filter(value => {
+    value !== trailheadId;
+  });
+  trailheadEntity.trails = trailheadEntity.trails.filter(value => {
+    value !== trailId;
+  });
+  
   await datastore.update(trailEntity).catch(error => console.log(error));
   await datastore.update(trailheadEntity).catch(error => console.log(error));
 
@@ -752,6 +805,12 @@ app.delete("/trails/:trailId", async(req, res) => {
 // adds a trailhead to a trail, if the authenticated user owns that trail
 app.put('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
   const result = await assignTrailheadToTrail(req.params.trailId, req.params.trailheadId, req.headers.authorization).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
+// removes a trailhead from a trail, if the authenticated user owns that trail
+app.delete('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
+  const result = await removeTrailheadFromTrail(req.params.trailId, req.params.trailheadId, req.headers.authorization).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
