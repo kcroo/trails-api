@@ -192,6 +192,7 @@ function makeTrailFormatJSON(trailEntity) {
     "difficulty": trailEntity.difficulty,
     "trailheads": trailEntity.trailheads,
     "id": trailEntity[Datastore.KEY].id,
+    "userId": trailEntity.userId,
     "self": makeSelfURL(trailEntity[Datastore.KEY].id, TRAIL)
   }
 }
