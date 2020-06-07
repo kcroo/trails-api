@@ -206,7 +206,7 @@ function makeTrailheadFormatJSON(trailheadEntity) {
     "fee": trailheadEntity.fee,
     "trails": trailheadEntity.trails,
     "id": trailheadEntity[Datastore.KEY].id,
-    "self": makeSelfURL(trailheadEntity[Datastore.KEY].id, TRAIL)
+    "self": makeSelfURL(trailheadEntity[Datastore.KEY].id, TRAILHEAD)
   }
 }
 
@@ -695,9 +695,15 @@ app.get('/user', async(req, res) => {
   res.render("user.html", responseData);
 });
 
-// returns array of all trails that are owned by the authenticated user, with pagination
+// returns a trail by its ID that is owned by the authenticated user
 app.get('/trails/:trailId', async function(req, res){
   const result = await getEntity(req.params.trailId, TRAIL, req.headers.authorization);
+  res.status(result.code).send(result.data);
+});
+
+// returns a trailhead by its ID (no authentication needed)
+app.get('/trailheads/:trailheadId', async function(req, res){
+  const result = await getEntity(req.params.trailheadId, TRAILHEAD);
   res.status(result.code).send(result.data);
 });
 
