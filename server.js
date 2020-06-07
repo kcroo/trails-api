@@ -588,7 +588,6 @@ async function deleteEntity(id, type, idToken) {
 // output on error: if user can't be authenticated; if trail or trailhead doesn't exist; if user doesn't own trail
 // output on success: trailhead ID is added to trail; trail ID is added to trailhead; returns 204 and no body
 async function assignTrailheadToTrail(trailId, trailheadId, idToken) { 
-  console.log(trailId, trailheadId);
   // error if user can't be authenticated 
   const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
 
@@ -603,7 +602,7 @@ async function assignTrailheadToTrail(trailId, trailheadId, idToken) {
   // error if trail or trailhead doesn't exist; or if trailhead is already assigned to that trail
   if (!trailEntity || !trailheadEntity) {
     return itemNotFoundError;
-  } else if (trailEntity.trailheads.includes(trailheadEntity.name)){
+  } else if (trailEntity.trailheads.includes(trailheadEntity[Datastore.KEY].id) && trailheadEntity.trails.includes(trailEntity[Datastore.KEY].id)){
     return alreadyExistsError;
   } 
 
