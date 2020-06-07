@@ -77,6 +77,14 @@ const forbiddenError = {
   }
 };
 
+// error when authenticated user tries to add trailhead to trail that already exists
+const alreadyExistsError = {
+  "code": 403,
+  "data": {
+    "error": "That content already exists and cannot be added again."
+  }
+};
+
 // error when client requests an ID that doesn't exist in datastore
 const itemNotFoundError = {
   "code": 404,
@@ -97,6 +105,7 @@ const TRAIL = {
   "name": "Trail",
   "URL": "trails/",
   "requiredAttributes": ["name", "length", "difficulty"],
+  "otherAttributes": ["trailheads"],
   "protected": true
 };
 
@@ -104,6 +113,7 @@ const TRAILHEAD = {
   "name": "Trailhead",
   "URL": "trailheads/",
   "requiredAttributes": ["name", "location", "fee"],
+  "otherAttributes": ["trails"],
   "protected": false
 };
 
@@ -180,6 +190,7 @@ function makeTrailFormatJSON(trailEntity) {
     "name": trailEntity.name,
     "length": trailEntity.length,
     "difficulty": trailEntity.difficulty,
+    "trailheads": trailEntity.trailheads,
     "id": trailEntity[Datastore.KEY].id,
     "self": makeSelfURL(trailEntity[Datastore.KEY].id, TRAIL)
   }
@@ -193,6 +204,7 @@ function makeTrailheadFormatJSON(trailheadEntity) {
     "name": trailheadEntity.name,
     "location": trailheadEntity.location,
     "fee": trailheadEntity.fee,
+    "trails": trailheadEntity.trails,
     "id": trailheadEntity[Datastore.KEY].id,
     "self": makeSelfURL(trailheadEntity[Datastore.KEY].id, TRAIL)
   }
@@ -229,6 +241,45 @@ async function makeResponseByType(type, entities) {
 function makeNextPageURL(type, cursor) {
   const encodedCursor = encodeURIComponent(cursor);
   return URL + type.URL + "?nextPage=" + encodedCursor;
+}
+
+// get a single entity
+// input: type of entity (e.g. TRAIL, TRAILHEAD); user's JWT idToken
+// errors: user can't be authenticated; user doesn't own this entity; entity can't be found 
+// output on success: entity data formatted by its type in JSON
+async function getEntity(id, type, idToken) {
+  let userData = null;
+
+  // if this entity is protected, authenticate the user
+  if (type.protected) {
+    userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+
+    if (userData === false) {
+      return userNotAuthenticatedError;
+    }
+  }
+
+  const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
+
+  if (!entity) {
+    return itemNotFoundError;
+  }
+
+  if (type.protected && (entity.userId !== userData.payload.sub)) {
+    return forbiddenError;
+  }
+
+  // make response object,
+  const response = {
+    "code": 200,
+    "data": {}
+  }
+  
+  // format reseponse items according to type (makeResponseByType takes and returns an array - may change later)
+  const formattedArray = await makeResponseByType(type, [entity]).catch(error => console.log(error));
+  response.data = formattedArray[0];
+
+  return response;
 }
 
 // get page of results for a type of entity
@@ -358,6 +409,11 @@ async function postEntity(type, idToken, body){
   // set all required attributes for this type
   for (const attr of type.requiredAttributes) {
     newEntity[attr] = body[attr];
+  }
+
+  // set all other attributes for this type to empty arrays
+  for (const attr of type.otherAttributes) {
+    newEntity[attr] = [];
   }
 
   // make key and self URL attribute for all items
@@ -526,6 +582,49 @@ async function deleteEntity(id, type, idToken) {
   }
 }
 
+// adds trailhead to trail, if the authenticated user owns that trail
+// input: trailId and trailheadId
+// output on error: if user can't be authenticated; if trail or trailhead doesn't exist; if user doesn't own trail
+// output on success: trailhead ID is added to trail; trail ID is added to trailhead; returns 204 and no body
+async function assignTrailheadToTrail(trailId, trailheadId, idToken) { 
+  console.log(trailId, trailheadId);
+  // error if user can't be authenticated 
+  const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+
+  if (userData === false) {
+    return userNotAuthenticatedError;
+  }
+
+  // get trail and trailhead from datastore
+  const trailEntity = await getEntityFromDatastore(trailId, TRAIL).catch(error => console.log(error));
+  const trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD).catch(error => console.log(error));
+
+  // error if trail or trailhead doesn't exist; or if trailhead is already assigned to that trail
+  if (!trailEntity || !trailheadEntity) {
+    return itemNotFoundError;
+  } else if (trailEntity.trailheads.includes(trailheadEntity.name)){
+    return alreadyExistsError;
+  } 
+
+  // error if user doesn't own this trail
+  if (trailEntity.userId !== userData.payload.sub) {
+    return forbiddenError;
+  }
+
+  // add trail ID to trailhead and trailhead ID to trail; update in datastore
+  trailEntity.trailheads.push(trailheadEntity[Datastore.KEY].id);
+  console.log(trailEntity.trailheads);
+  trailheadEntity.trails.push(trailEntity[Datastore.KEY].id);
+  console.log(trailheadEntity.trails);
+  await datastore.update(trailEntity).catch(error => console.log(error));
+  await datastore.update(trailheadEntity).catch(error => console.log(error));
+
+  return {
+    "code": 204,
+    "data": {}
+  }
+}
+
 // returns user data from the Google People API 
 // input: tokens object from google that contains the access token 
 // output: if successful, returns JSON containing user's name and other info; otherwise prints error to console and returns empty object
@@ -597,6 +696,12 @@ app.get('/user', async(req, res) => {
 });
 
 // returns array of all trails that are owned by the authenticated user, with pagination
+app.get('/trails/:trailId', async function(req, res){
+  const result = await getEntity(req.params.trailId, TRAIL, req.headers.authorization);
+  res.status(result.code).send(result.data);
+});
+
+// returns array of all trails that are owned by the authenticated user, with pagination
 app.get('/trails', async function(req, res){
   const result = await getEntitiesPagination(TRAIL, req.headers.authorization, req.query.nextPage);
   res.status(result.code).send(result.data);
@@ -635,6 +740,12 @@ app.patch("/trails/:trailId", async(req, res) => {
 // deletes a trail from datastore if the authenticated user owns it
 app.delete("/trails/:trailId", async(req, res) => {
   const result = await deleteEntity(req.params.trailId, TRAIL, req.headers.authorization).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
+// adds a trailhead to a trail, if the authenticated user owns that trail
+app.put('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
+  const result = await assignTrailheadToTrail(req.params.trailId, req.params.trailheadId, req.headers.authorization).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
