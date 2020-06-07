@@ -11,6 +11,9 @@ main source - google API library - oauth: https://github.com/googleapis/google-a
 authentication with id_token: https://developers.google.com/identity/sign-in/web/backend-auth
 slice to remove part of string: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice
 see if key exists in object: https://stackoverflow.com/questions/1098040/checking-if-a-key-exists-in-a-javascript-object
+pagination: https://stackoverflow.com/questions/44184469/google-cloud-datastore-how-to-query-for-more-results
+pagination: https://cloud.google.com/datastore/docs/concepts/queries?authuser=1#cursors_limits_and_offsets
+key-only queries to get total number of entities of a certain type: https://cloud.google.com/datastore/docs/concepts/queries
 */
 
 // set up necessary libraries
@@ -37,6 +40,9 @@ const datastore = new Datastore();
 // url to add all other routes to
 const URL = "http://localhost:8001/";
 //const URL = "https://hw7b-493-corraok.wl.r.appspot.com/";
+
+// number of entities to display per page in pagination 
+const RESULTS_PER_PAGE = 5;
 
 
 /*** error codes ***/ 
@@ -199,6 +205,79 @@ async function makeResponseByType(type, entities) {
     );
   }
 
+  return response;
+}
+
+// builds and returns next page URL for pagination results (ex: http://mysite.com/trails/12345)
+// encodes the cursor string to replace '+' characters with "%2B"
+// input: type of entity (e.g. TRAIL, TRAILHEAD); cursor that points to next page in results 
+// output: URL for next page of results
+function makeNextPageURL(type, cursor) {
+  const encodedCursor = encodeURIComponent(cursor);
+  return URL + type.URL + "?nextPage=" + encodedCursor;
+}
+
+// get page of results for a type of entity
+// input: type of entity (e.g. TRAIL, TRAILHEAD); if nextPageCursor is defined, results start at that page
+// output: array of formatted items; next URL contains next page of results, if it exists
+async function getEntitiesPagination(type, idToken, nextPageCursor) {
+  // all responses get code 200; data will hold items, self URL, and next URL if needed
+  const response = {
+    "code": 200,
+    "data": {}
+  }
+
+  let userData = null;
+
+  // if this entity is protected, authenticate the user
+  if (type.protected) {
+    userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+
+    if (userData === false) {
+      return userNotAuthenticatedError;
+    }
+  }
+
+  let countQuery = null;
+  let pageQuery = null;
+
+  // create query: only get the current user's entities if the resource is protected; otherwise get them all
+  if (userData) {
+    countQuery = datastore.createQuery(type.name).select('__key__').filter('userId', '=', userData.payload.sub);
+    pageQuery = datastore.createQuery(type.name).filter('userId', '=', userData.payload.sub).limit(RESULTS_PER_PAGE);
+  } else {
+    countQuery = datastore.createQuery(type.name).select('__key__');
+    pageQuery = datastore.createQuery(type.name).limit(RESULTS_PER_PAGE);
+  }
+
+  // get count of # of entities of this type
+  let results = await datastore.runQuery(countQuery).catch(error => console.log(error));
+  response.data.count = results[0].length;
+
+  // if nextPageCursor argument is set, set query to start on that page and use it to make self URL; otherwise make standard URL without id
+  if (nextPageCursor) {
+    pageQuery = pageQuery.start(nextPageCursor);
+    response.data.self = makeNextPageURL(type, nextPageCursor);
+  } else {
+    response.data.self = makeSelfURL("", type);
+  }
+
+  // get results, where index 0 is items and index 1 is metadata about query
+  results = await datastore.runQuery(pageQuery).catch(error => console.log(error));
+
+  if (results) {
+    const items = results[0];
+    const info = results[1];
+  
+    // format reseponse items according to type (e.g. boat or load)
+    response.data.items = await makeResponseByType(type, items).catch(error => console.log(error));
+  
+    // if there are more pages of items in datastore, also set next URL for next page
+    if (info.moreResults !== Datastore.NO_MORE_RESULTS) {
+      response.data.next = makeNextPageURL(type, info.endCursor);
+    }
+  }
+  
   return response;
 }
 
@@ -503,9 +582,9 @@ app.get('/user', async(req, res) => {
   res.render("user.html", responseData);
 });
 
-// returns array of all trails in JSON, no authentication required
+// returns array of all trails that are owned by the authenticated user, with pagination
 app.get('/trails', async function(req, res){
-  const result = await getItemsByType(TRAIL);
+  const result = await getEntitiesPagination(TRAIL, req.headers.authorization, req.query.nextPage);
   res.status(result.code).send(result.data);
 });
 
