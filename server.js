@@ -15,6 +15,7 @@ pagination: https://stackoverflow.com/questions/44184469/google-cloud-datastore-
 pagination: https://cloud.google.com/datastore/docs/concepts/queries?authuser=1#cursors_limits_and_offsets
 key-only queries to get total number of entities of a certain type: https://cloud.google.com/datastore/docs/concepts/queries
 sending postman requests within test with headers: https://gist.github.com/madebysid/b57985b0649d3407a7aa9de1bd327990
+geoPointValue datatype for coordinates: https://cloud.google.com/datastore/docs/concepts/entities#properties_and_value_types
 */
 
 // set up necessary libraries
@@ -555,6 +556,11 @@ async function patchEntity(id, type, idToken, body) {
   updatedEntity.data.id = id;
   updatedEntity.data.self = makeSelfURL(id, type);
 
+  // also set any other attributes (such as trail or trailhead array)
+  for (const attr of type.otherAttributes) {
+    updatedEntity.data[attr] = entity[attr];
+  }
+
   return updatedEntity;
 }
 
@@ -793,6 +799,12 @@ app.put("/trails/:trailId", async(req, res) => {
 // edits some or all of a trails's information
 app.patch("/trails/:trailId", async(req, res) => {
   const result = await patchEntity(req.params.trailId, TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
+// edits some or all of a trailheads's information
+app.patch("/trailheads/:trailheadId", async(req, res) => {
+  const result = await patchEntity(req.params.trailheadId, TRAILHEAD, req.headers.authorization, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
