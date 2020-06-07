@@ -193,8 +193,8 @@ function makeTrailheadFormatJSON(trailheadEntity) {
     "name": trailheadEntity.name,
     "location": trailheadEntity.location,
     "fee": trailheadEntity.fee,
-    "id": trailEntity[Datastore.KEY].id,
-    "self": makeSelfURL(trailEntity[Datastore.KEY].id, TRAIL)
+    "id": trailheadEntity[Datastore.KEY].id,
+    "self": makeSelfURL(trailheadEntity[Datastore.KEY].id, TRAIL)
   }
 }
 
@@ -599,6 +599,12 @@ app.get('/user', async(req, res) => {
 // returns array of all trails that are owned by the authenticated user, with pagination
 app.get('/trails', async function(req, res){
   const result = await getEntitiesPagination(TRAIL, req.headers.authorization, req.query.nextPage);
+  res.status(result.code).send(result.data);
+});
+
+// returns array of all trailheads, with pagination
+app.get('/trailheads', async function(req, res){
+  const result = await getEntitiesPagination(TRAILHEAD, req.headers.authorization, req.query.nextPage);
   res.status(result.code).send(result.data);
 });
 
