@@ -468,13 +468,15 @@ async function putEntity(id, type, idToken, body) {
   // will fill out this object if the resource is protected
   let userData = null;
 
-  // if item is protected, return error if user can't be authenticated
+  // if item is protected, return error if user can't be authenticated; add userId to updatedEntity to return to client
   if (type.protected) {
     userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
 
     if (userData === false) {
       return userNotAuthenticatedError;
     }
+
+    updatedEntity.data.userId = userData.payload.sub;
   }
 
   // get item from datastore - error if item's ID can't be found
@@ -500,7 +502,11 @@ async function putEntity(id, type, idToken, body) {
   // add information to send back to client
   updatedEntity.data.id = id;
   updatedEntity.data.self = makeSelfURL(id, type);
-  updatedEntity.data.userId = userData.payload.sub;
+
+  // also set any other attributes (such as trail or trailhead array)
+  for (const attr of type.otherAttributes) {
+    updatedEntity.data[attr] = entity[attr];
+  }
 
   return updatedEntity;
 }
@@ -793,6 +799,12 @@ app.post('/trailheads', async(req, res) => {
 // replaces existing trails's information with that provided in body
 app.put("/trails/:trailId", async(req, res) => {
   const result = await putEntity(req.params.trailId, TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
+// replaces existing trailhead's information with that provided in body
+app.put("/trailheads/:trailheadId", async(req, res) => {
+  const result = await putEntity(req.params.trailheadId, TRAILHEAD, req.headers.authorization, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
