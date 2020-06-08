@@ -401,38 +401,6 @@ async function getEntitiesPagination(type, headers, nextPageCursor) {
   return response;
 }
 
-// get all items of a particular type (e.g. USER, TRAILS, TRAILHEADS); no user authentication is needed or checked
-// input: type of item
-// output: code 200 and array of JSON items of that type
-async function getItemsByType(type) {
-  // all responses get code 200; data will hold items, self URL, and next URL if needed
-  const response = {
-    "code": 200,
-    "data": {
-      "items": []
-    }
-  }
-  // get all items of that type, with certain number per page 
-  let query = datastore.createQuery(type.name);
-
-  // get results, where index 0 is items and index 1 is metadata about query for pagination
-  const results = await datastore.runQuery(query)
-    .catch(error => {
-      console.log("error getting all items from datastore", error);
-      return datastoreQueryError;
-    });
-
-  // if results from database, format each in JSON
-  if (results) {
-    const items = results[0]; 
-    response.data.items = await makeResponseByType(type, items)
-      .catch(error => console.log("error making response by time", error));
-  }
-  
-  return response;
-}
-
-
 /*** route functions ***/
 
 // posts new item. client must send all required attributes for item in body.
