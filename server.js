@@ -771,13 +771,11 @@ app.get('/user', async(req, res) => {
   // get token for this user to authenticate them
   const code = req.query.code;
   const {tokens} = await oauth2Client.getToken(code).catch(error => console.log(error));
-  console.log("tokens: ", tokens);
 
   oauth2Client.setCredentials(tokens);
 
   // get user data from people API
   const userData = await getUserData(tokens).catch(error => console.log(error));
-  console.log("userData: ", userData);
 
   // prepare response variables
   const responseData = {};
@@ -792,7 +790,28 @@ app.get('/user', async(req, res) => {
     res.render("user.html", responseData);
   }
 
-  // format data and send
+  // if user hasn't bee added to USERS before, add them 
+  const userQuery = datastore.createQuery(USER.name).filter('userId', '=', sub)
+  const results = await datastore.runQuery(userQuery).catch(error => console.log(error));
+
+  // if no results, add user to datastore
+  if (results[0].length === 0) {
+    const newUser = {
+      firstName: userData.names[0].givenName,
+      lastName: userData.names[0].familyName,
+      userId: sub
+    };
+
+    // save new user info to datastore
+    const key = datastore.key(USER.name);
+    
+    await datastore.save({ "key": key, "data": newUser })
+      .catch(error => {
+        console.log("error saving to datastore: ", error)
+      });
+  }
+  
+  // format data to send to web page
   responseData.firstName = userData.names[0].givenName;
   responseData.lastName = userData.names[0].familyName;
   responseData.jwt = tokens.id_token;
