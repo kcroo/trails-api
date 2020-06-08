@@ -108,7 +108,9 @@ const itemNotFoundError = {
 const USER = {
   "name": "User",
   "URL": "users/",
-  "requiredAttributes": ["email"]
+  "requiredAttributes": ["firstName", "lastName", "userId"],
+  "otherAttributes": [],
+  "protected": false
 };
 
 const TRAIL = {
@@ -221,6 +223,19 @@ function makeTrailheadFormatJSON(trailheadEntity) {
   }
 }
 
+// returns a user's information in JSON
+// input: userEntity from datastore 
+// output: object containing ID, properties, and self URL
+function makeUserFormatJSON(userEntity) {
+  return {
+    "firstName": userEntity.firstName,
+    "lastName": userEntity.lastName,
+    "userId": userEntity.userId,
+    "id": userEntity[Datastore.KEY].id,
+    "self": makeSelfURL(userEntity[Datastore.KEY].id, TRAILHEAD)
+  }
+}
+
 
 // returns a formatted array of entitites according to its type 
 // input: type (e.g. TRAIL, TRAILHEAD); array of entities from datastore 
@@ -238,6 +253,12 @@ async function makeResponseByType(type, entities) {
     response = Promise.all(
       entities.map( async (trailhead) => {
         return makeTrailheadFormatJSON(trailhead);
+      })
+    );
+  } else if (type.name === 'User') {
+    response = Promise.all(
+      entities.map( async (user) => {
+        return makeUserFormatJSON(user);
       })
     );
   }
@@ -904,9 +925,9 @@ app.delete('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
   res.status(result.code).send(result.data);
 });
 
-// returns information about an owner's boats
-app.get('/owners/:ownerID/boats', async(req, res) => {
-  const result = await getOwnersBoats(req.headers.authorization).catch(error => console.log(error));
+// returns userId, first name, adn last name of all users (no authentication required)
+app.get('/users', async(req, res) => {
+  const result = await getEntitiesPagination(USER, req.headers.authorization, req.query.nextPage).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
