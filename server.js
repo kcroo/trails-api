@@ -56,13 +56,6 @@ const attributeMissingError = {
   }
 };
 
-const datastoreQueryError = {
-  "code": 400,
-  "data": {
-    "error": "Could not retrieve items from datastore."
-  }
-};
-
 // error if ID token is not valid and user can't be authenticated
 const userNotAuthenticatedError = {
   "code": 401,
@@ -92,14 +85,6 @@ const relationshipDoesNotExistError = {
   "code": 403,
   "data": {
     "error": "That relationship does not exist."
-  }
-};
-
-// error when client requests an ID that doesn't exist in datastore
-const itemNotFoundError = {
-  "code": 404,
-  "data": {
-    "error": "No object with this ID exists"
   }
 };
 
@@ -206,12 +191,27 @@ function makeSelfURL(id, type) {
   return URL + type.URL + id;
 }
 
-// returns an entity from datastore
-// input: entity's ID and type (e.g. BOAT)
+// returns an entity from datastore. if userId is provided, it only returns an entity that belongs to that user
+// input: entity's ID, type, and userId if it is a protected resource
 // output: entity, which contains its key and all properties
-async function getEntityFromDatastore(id, type) {
-  const key = datastore.key([type.name, parseInt(id)]);
-  const [entity] = await datastore.get(key).catch(error => console.log(error));
+async function getEntityFromDatastore(id, type, userId) {
+  let entity = null;
+
+  if (userId) {
+    const query = datastore.createQuery(type.name)
+      .filter('userId', '=', userId)
+      .filter('__key__', '=', datastore.key([type.name, parseInt(id)]));
+
+    const results = await datastore.runQuery(query).catch(error => console.log(error));
+
+    if (results[0].length > 0) {
+      entity = results[0][0]
+    }
+  } else {
+    const key = datastore.key([type.name, parseInt(id)]);
+    [entity] = await datastore.get(key).catch(error => console.log(error));
+  }
+  
   return entity;
 }
 
@@ -307,23 +307,23 @@ async function getEntity(id, type, headers) {
   }
 
   let userData = null;
+  let entity = null;
 
-  // if this entity is protected, authenticate the user
+  // if this entity is protected, authenticate the user, then get entity that belongs to that user; otherwise just query by entity ID
   if (type.protected) {
     userData = await verifyUser(headers.authorization).catch(error => console.log("error authenticating user", error));
 
     if (userData === false) {
       return userNotAuthenticatedError;
     }
+
+    entity = await getEntityFromDatastore(id, type, userData.payload.sub).catch(error => console.log(error));
+  } else {
+    entity = await getEntityFromDatastore(id, type, null).catch(error => console.log(error));
   }
 
-  const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
-
+  // if entity doesn't exist or doesn't belong to this user, return 403 error
   if (!entity) {
-    return itemNotFoundError;
-  }
-
-  if (type.protected && (entity.userId !== userData.payload.sub)) {
     return forbiddenError;
   }
 
@@ -497,6 +497,7 @@ async function putEntity(id, type, headers, body) {
 
   // will fill out this object if the resource is protected
   let userData = null;
+  let entity = null;
 
   // if item is protected, return error if user can't be authenticated; add userId to updatedEntity to return to client
   if (type.protected) {
@@ -507,17 +508,13 @@ async function putEntity(id, type, headers, body) {
     }
 
     updatedEntity.data.userId = userData.payload.sub;
+    entity = await getEntityFromDatastore(id, type, userData.payload.sub).catch(error => console.log(error));
+  } else {
+    entity = await getEntityFromDatastore(id, type, null).catch(error => console.log(error));
   }
 
-  // get item from datastore - error if item's ID can't be found
-  const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
-
+  // error if no entity for that user if protected; or no item at all if not
   if (!entity) {
-    return itemNotFoundError;
-  }
-
-  // return error if item is protected and doesn't belong to the authenticated user
-  if (type.protected && entity.userId !== userData.payload.sub) {
     return forbiddenError;
   }
 
@@ -557,6 +554,7 @@ async function patchEntity(id, type, headers, body) {
   };
 
   let userData = null;
+  let entity = null;
 
   // if item is protected, return error if user can't be authenticated; otherwise set userID
   if (type.protected) {
@@ -567,17 +565,13 @@ async function patchEntity(id, type, headers, body) {
     }
 
     updatedEntity.data.userId = userData.payload.sub;
+    entity = await getEntityFromDatastore(id, type, userData.payload.sub).catch(error => console.log(error));
+  } else {
+    entity = await getEntityFromDatastore(id, type, null).catch(error => console.log(error));
   }
 
-  // get item from datastore - error if item's ID can't be found
-  const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
-
+  // if entity doesn't exist, or the entity is protected and doesn't belong to this user -> return 403
   if (!entity) {
-    return itemNotFoundError;
-  }
-
-  // return error if item is protected and doesn't belong to the authenticated user
-  if (type.protected && entity.userId !== userData.payload.sub) {
     return forbiddenError;
   }
 
@@ -611,7 +605,7 @@ async function removeRelationships(entity, type) {
     console.log("trailEntity: ", entity);
 
     for (const trailheadId of entity.trailheads) {
-      let trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD).catch(error => console.log(error));
+      let trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD, null).catch(error => console.log(error));
       console.log("trailheadEntity: ", trailheadEntity);
       
       trailheadEntity.trails = trailheadEntity.trails.filter(trailId => {
@@ -625,7 +619,7 @@ async function removeRelationships(entity, type) {
     console.log("trailheadEntity: ", entity);
 
     for (const trailId of entity.trails) {
-      const trailEntity = await getEntityFromDatastore(trailId, TRAIL).catch(error => console.log(error));
+      const trailEntity = await getEntityFromDatastore(trailId, TRAIL, null).catch(error => console.log(error));
       console.log("trailEntity: ", trailEntity);
 
       trailEntity.trailheads = trailEntity.trailheads.filter(trailheadId => {
@@ -647,13 +641,7 @@ async function deleteEntity(id, type, headers) {
     return acceptTypeError;
   }
 
-  // get entity with that ID from datastore
-  const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
-
-  // 404 if entity can't be found
-  if (!entity) {
-    return itemNotFoundError;
-  }
+  let entity = null;
 
   // if the entity is protected, authenticate user and verify they own it; otherwise return error
   if (type.protected) {
@@ -661,9 +649,16 @@ async function deleteEntity(id, type, headers) {
 
     if (userData === false) {
       return userNotAuthenticatedError;
-    } else if (entity.userId !== userData.payload.sub) {
-      return forbiddenError;
-    }
+    } 
+
+    entity = await getEntityFromDatastore(id, type, userData.payload.sub).catch(error => console.log(error));
+  } else {
+    entity = await getEntityFromDatastore(id, type, null).catch(error => console.log(error));
+  }
+
+  // 403 if entity can't be found or doesn't belong to this user
+  if (!entity) {
+    return forbiddenError;
   }
 
   // check if entity is related to any other entities
@@ -696,21 +691,16 @@ async function assignTrailheadToTrail(trailId, trailheadId, headers) {
     return userNotAuthenticatedError;
   }
 
-  // get trail and trailhead from datastore
-  const trailEntity = await getEntityFromDatastore(trailId, TRAIL).catch(error => console.log(error));
-  const trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD).catch(error => console.log(error));
+  // get trail and trailhead from datastore (only finds trails that belong to this user)
+  const trailEntity = await getEntityFromDatastore(trailId, TRAIL, userData.payload.sub).catch(error => console.log(error));
+  const trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD, null).catch(error => console.log(error));
 
-  // error if trail or trailhead doesn't exist; or if trailhead is already assigned to that trail
+  // error if trail or trailhead doesn't exist, or if user doesn't own it; or if trailhead is already assigned to that trail
   if (!trailEntity || !trailheadEntity) {
-    return itemNotFoundError;
+    return forbiddenError;
   } else if (trailEntity.trailheads.includes(trailheadEntity[Datastore.KEY].id) && trailheadEntity.trails.includes(trailEntity[Datastore.KEY].id)){
     return alreadyExistsError;
   } 
-
-  // error if user doesn't own this trail
-  if (trailEntity.userId !== userData.payload.sub) {
-    return forbiddenError;
-  }
 
   // add trail ID to trailhead and trailhead ID to trail; update in datastore
   trailEntity.trailheads.push(trailheadEntity[Datastore.KEY].id);
@@ -746,21 +736,16 @@ async function removeTrailheadFromTrail(trailId, trailheadId, headers) {
     return userNotAuthenticatedError;
   }
 
-  // get trail and trailhead from datastore
-  const trailEntity = await getEntityFromDatastore(trailId, TRAIL).catch(error => console.log(error));
-  const trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD).catch(error => console.log(error));
+  // get trail and trailhead from datastore (only gets trail that belongs to user)
+  const trailEntity = await getEntityFromDatastore(trailId, TRAIL, userData.payload.sub).catch(error => console.log(error));
+  const trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD, null).catch(error => console.log(error));
 
-  // error if trail or trailhead doesn't exist; or if trailhead isn't already assigned to trail and vice versa
+  // error if trail or trailhead doesn't exist, or doesn't belong to this user; or if trailhead isn't already assigned to trail and vice versa
   if (!trailEntity || !trailheadEntity) {
-    return itemNotFoundError;
+    return forbiddenError;
   } else if (!(trailEntity.trailheads.includes(trailheadEntity[Datastore.KEY].id)) && !(trailheadEntity.trails.includes(trailEntity[Datastore.KEY].id))){
     return relationshipDoesNotExistError;
   } 
-
-  // error if user doesn't own this trail
-  if (trailEntity.userId !== userData.payload.sub) {
-    return forbiddenError;
-  }
 
   // removes trail ID from trailhead and trailhead ID from trail; updates both in datastore
   trailEntity.trailheads = trailEntity.trailheads.filter(value => {
