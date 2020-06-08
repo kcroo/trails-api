@@ -103,6 +103,14 @@ const itemNotFoundError = {
   }
 };
 
+// error when request's Accept header isn't set to */* or JSON (or HTML for getBoat)
+const acceptTypeError = {
+  "code": 406,
+  "data": {
+    "error": "The request's accept type is not valid."
+  }
+};
+
 /*** datastore entities***/
 // name is datastore entity name; URL can be use to build entity's URL; attributes are those required when user POSTs new entity
 const USER = {
@@ -177,6 +185,11 @@ async function verifyUser(idToken) {
 
 
 /*** helper functions ***/
+
+// returns true if Accept in the request's headers does NOT allow JSON 
+function acceptTypeIsNotJSON(headers) {
+  return headers.accept !== "*/*" && headers.accept !== "application/json";
+}
 
 // builds and returns self URL for an entity (ex: http://mysite.com/boats/12345)
 // input: ID of entity; type of entity (e.g. BOAT)
@@ -279,12 +292,16 @@ function makeNextPageURL(type, cursor) {
 // input: type of entity (e.g. TRAIL, TRAILHEAD); user's JWT idToken
 // errors: user can't be authenticated; user doesn't own this entity; entity can't be found 
 // output on success: entity data formatted by its type in JSON
-async function getEntity(id, type, idToken) {
+async function getEntity(id, type, headers) {
+  if (acceptTypeIsNotJSON(headers)) { 
+    return acceptTypeError;
+  }
+
   let userData = null;
 
   // if this entity is protected, authenticate the user
   if (type.protected) {
-    userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+    userData = await verifyUser(headers.authorization).catch(error => console.log("error authenticating user", error));
 
     if (userData === false) {
       return userNotAuthenticatedError;
@@ -843,13 +860,13 @@ app.get('/user', async(req, res) => {
 
 // returns a trail by its ID that is owned by the authenticated user
 app.get('/trails/:trailId', async function(req, res){
-  const result = await getEntity(req.params.trailId, TRAIL, req.headers.authorization);
+  const result = await getEntity(req.params.trailId, TRAIL, req.headers);
   res.status(result.code).send(result.data);
 });
 
 // returns a trailhead by its ID (no authentication needed)
 app.get('/trailheads/:trailheadId', async function(req, res){
-  const result = await getEntity(req.params.trailheadId, TRAILHEAD);
+  const result = await getEntity(req.params.trailheadId, TRAILHEAD, req.headers);
   res.status(result.code).send(result.data);
 });
 
