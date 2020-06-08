@@ -108,7 +108,7 @@ const itemNotFoundError = {
 const USER = {
   "name": "User",
   "URL": "users/",
-  "requiredAttributes": ["username", "email"]
+  "requiredAttributes": ["email"]
 };
 
 const TRAIL = {
@@ -570,6 +570,38 @@ async function patchEntity(id, type, idToken, body) {
   return updatedEntity;
 }
 
+async function removeRelationships(entity, type) {
+  if (type === TRAIL) {
+    console.log("removing relationship");
+    console.log("trailEntity: ", entity);
+
+    for (const trailheadId of entity.trailheads) {
+      let trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD).catch(error => console.log(error));
+      console.log("trailheadEntity: ", trailheadEntity);
+      
+      trailheadEntity.trails = trailheadEntity.trails.filter(trailId => {
+        return trailId != entity[Datastore.KEY].id;
+      });
+
+      await datastore.update(trailheadEntity).catch(error => console.log(error));
+    }
+  } else if (type === TRAILHEAD) {
+    console.log("removing relationship");
+    console.log("trailheadEntity: ", entity);
+
+    for (const trailId of entity.trails) {
+      const trailEntity = await getEntityFromDatastore(trailId, TRAIL).catch(error => console.log(error));
+      console.log("trailEntity: ", trailEntity);
+
+      trailEntity.trailheads = trailEntity.trailheads.filter(trailheadId => {
+        return trailheadId != entity[Datastore.KEY].id;
+      });
+
+      await datastore.update(trailEntity).catch(error => console.log(error));
+    }
+  }
+}
+
 // delete an existing entity; if it's protected, it authenticates the user and checks if the user owns the entity
 // input: trailId to delete
 // output on success: code 204 after entity is deleted
@@ -593,6 +625,9 @@ async function deleteEntity(id, type, idToken) {
       return forbiddenError;
     }
   }
+
+  // check if entity is related to any other entities
+  removeRelationships(entity, type);
 
   // delete entity
   const key = entity[Datastore.KEY];
@@ -639,6 +674,10 @@ async function assignTrailheadToTrail(trailId, trailheadId, idToken) {
   await datastore.update(trailEntity).catch(error => console.log(error));
   await datastore.update(trailheadEntity).catch(error => console.log(error));
 
+  console.log("added relationship");
+  console.log("trailEntity: ", trailEntity);
+  console.log("trailheadEntity: ", trailheadEntity);
+
   return {
     "code": 204,
     "data": {}
@@ -675,10 +714,10 @@ async function removeTrailheadFromTrail(trailId, trailheadId, idToken) {
 
   // removes trail ID from trailhead and trailhead ID from trail; updates both in datastore
   trailEntity.trailheads = trailEntity.trailheads.filter(value => {
-    value !== trailheadId;
+    return value !== trailheadId;
   });
   trailheadEntity.trails = trailheadEntity.trails.filter(value => {
-    value !== trailId;
+    return value !== trailId;
   });
   
   await datastore.update(trailEntity).catch(error => console.log(error));
@@ -732,11 +771,13 @@ app.get('/user', async(req, res) => {
   // get token for this user to authenticate them
   const code = req.query.code;
   const {tokens} = await oauth2Client.getToken(code).catch(error => console.log(error));
+  console.log("tokens: ", tokens);
 
   oauth2Client.setCredentials(tokens);
 
   // get user data from people API
   const userData = await getUserData(tokens).catch(error => console.log(error));
+  console.log("userData: ", userData);
 
   // prepare response variables
   const responseData = {};
