@@ -407,7 +407,12 @@ async function getEntitiesPagination(type, headers, nextPageCursor) {
 // input: name and type (strings); length (int)
 // output on success: returns code 201 and formatted boat data if successful (name, type, length, ID, and self URL)
 // error: 400 if name, type, or length are missing; 401 if user can't be authenticated by ID token
-async function postEntity(type, idToken, body){
+async function postEntity(type, headers, body){
+  // must accept JSON response
+  if (acceptTypeIsNotJSON(headers)) { 
+    return acceptTypeError;
+  }
+
   // check if any required attributes are missing from post
   for (const attr of type.requiredAttributes) {
     if (!(attr in body)) {
@@ -420,7 +425,7 @@ async function postEntity(type, idToken, body){
 
   // if this entity is protected, authenticate the user and set the item's user ID
   if (type.protected) {
-    const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+    const userData = await verifyUser(headers.authorization).catch(error => console.log("error authenticating user", error));
 
     if (userData === false) {
       return userNotAuthenticatedError;
@@ -462,7 +467,12 @@ async function postEntity(type, idToken, body){
 // input: ID, type, and data to update
 // output on error: error if incomplete data, entity doesn't exist, or user can't be authenticated
 // output on success: updates datastore and returns object of data, ID, self URL, and status code
-async function putEntity(id, type, idToken, body) {
+async function putEntity(id, type, headers, body) {
+  // must accept JSON response
+  if (acceptTypeIsNotJSON(headers)) { 
+    return acceptTypeError;
+  }
+
   // will save changes to this object
   let updatedEntity = {
     "code": 200,
@@ -482,7 +492,7 @@ async function putEntity(id, type, idToken, body) {
 
   // if item is protected, return error if user can't be authenticated; add userId to updatedEntity to return to client
   if (type.protected) {
-    userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+    userData = await verifyUser(headers.authorization).catch(error => console.log("error authenticating user", error));
 
     if (userData === false) {
       return userNotAuthenticatedError;
@@ -526,7 +536,12 @@ async function putEntity(id, type, idToken, body) {
 // patch an existing entity - only those attributes provided in body will be replaced
 // input: ID, type, and data to update
 // output: error if entity doesn't exist; otherwise updates datastore and returns object of data, ID, self URL, and status code
-async function patchEntity(id, type, idToken, body) {
+async function patchEntity(id, type, headers, body) {
+  // must accept JSON response
+  if (acceptTypeIsNotJSON(headers)) { 
+    return acceptTypeError;
+  }
+
   // will save changes to this object
   let updatedEntity = {
     "code": 200,
@@ -537,7 +552,7 @@ async function patchEntity(id, type, idToken, body) {
 
   // if item is protected, return error if user can't be authenticated; otherwise set userID
   if (type.protected) {
-    userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+    userData = await verifyUser(headers.authorization).catch(error => console.log("error authenticating user", error));
 
     if (userData === false) {
       return userNotAuthenticatedError;
@@ -858,37 +873,37 @@ app.get('/trailheads', async function(req, res){
 
 // creates new trail if all data is provided in body; request and response must be JSON; otherwise error message
 app.post('/trails', async(req, res) => {
-  const result = await postEntity(TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+  const result = await postEntity(TRAIL, req.headers, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
 // creates new trailhead if all data is provided in body; request and response must be JSON; otherwise error message
 app.post('/trailheads', async(req, res) => {
-  const result = await postEntity(TRAILHEAD, req.headers.authorization, req.body).catch(error => console.log(error));
+  const result = await postEntity(TRAILHEAD, req.headers, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
 // replaces existing trails's information with that provided in body
 app.put("/trails/:trailId", async(req, res) => {
-  const result = await putEntity(req.params.trailId, TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+  const result = await putEntity(req.params.trailId, TRAIL, req.headers, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
 // replaces existing trailhead's information with that provided in body
 app.put("/trailheads/:trailheadId", async(req, res) => {
-  const result = await putEntity(req.params.trailheadId, TRAILHEAD, req.headers.authorization, req.body).catch(error => console.log(error));
+  const result = await putEntity(req.params.trailheadId, TRAILHEAD, req.headers, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
 // edits some or all of a trails's information
 app.patch("/trails/:trailId", async(req, res) => {
-  const result = await patchEntity(req.params.trailId, TRAIL, req.headers.authorization, req.body).catch(error => console.log(error));
+  const result = await patchEntity(req.params.trailId, TRAIL, req.headers, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
 // edits some or all of a trailheads's information
 app.patch("/trailheads/:trailheadId", async(req, res) => {
-  const result = await patchEntity(req.params.trailheadId, TRAILHEAD, req.headers.authorization, req.body).catch(error => console.log(error));
+  const result = await patchEntity(req.params.trailheadId, TRAILHEAD, req.headers, req.body).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
