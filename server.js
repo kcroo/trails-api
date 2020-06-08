@@ -289,7 +289,7 @@ function makeNextPageURL(type, cursor) {
 }
 
 // get a single entity
-// input: type of entity (e.g. TRAIL, TRAILHEAD); user's JWT idToken
+// input: type of entity (e.g. TRAIL, TRAILHEAD); headers (includes user's JWT and Accept)
 // errors: user can't be authenticated; user doesn't own this entity; entity can't be found 
 // output on success: entity data formatted by its type in JSON
 async function getEntity(id, type, headers) {
@@ -633,7 +633,12 @@ async function removeRelationships(entity, type) {
 // input: trailId to delete
 // output on success: code 204 after entity is deleted
 // output on error: code 403 if user doesn't own the entity; 404 if entity doesn't exist
-async function deleteEntity(id, type, idToken) {
+async function deleteEntity(id, type, headers) {
+  // must accept JSON response
+  if (acceptTypeIsNotJSON(headers)) { 
+    return acceptTypeError;
+  }
+
   // get entity with that ID from datastore
   const entity = await getEntityFromDatastore(id, type).catch(error => console.log(error));
 
@@ -644,7 +649,7 @@ async function deleteEntity(id, type, idToken) {
 
   // if the entity is protected, authenticate user and verify they own it; otherwise return error
   if (type.protected) {
-    const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+    const userData = await verifyUser(headers.authorization).catch(error => console.log("error authenticating user", error));
 
     if (userData === false) {
       return userNotAuthenticatedError;
@@ -670,9 +675,14 @@ async function deleteEntity(id, type, idToken) {
 // input: trailId and trailheadId
 // output on error: if user can't be authenticated; if trail or trailhead doesn't exist; if user doesn't own trail
 // output on success: trailhead ID is added to trail; trail ID is added to trailhead; returns 204 and no body
-async function assignTrailheadToTrail(trailId, trailheadId, idToken) { 
+async function assignTrailheadToTrail(trailId, trailheadId, headers) { 
+  // must accept JSON response
+  if (acceptTypeIsNotJSON(headers)) { 
+    return acceptTypeError;
+  }
+
   // error if user can't be authenticated 
-  const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+  const userData = await verifyUser(headers.authorization).catch(error => console.log("error authenticating user", error));
 
   if (userData === false) {
     return userNotAuthenticatedError;
@@ -715,9 +725,14 @@ async function assignTrailheadToTrail(trailId, trailheadId, idToken) {
 // input: trailId and trailheadId
 // output on error: if user can't be authenticated; if trail or trailhead doesn't exist; if user doesn't own trail
 // output on success: trailhead ID is added to trail; trail ID is added to trailhead; returns 204 and no body
-async function removeTrailheadFromTrail(trailId, trailheadId, idToken) { 
+async function removeTrailheadFromTrail(trailId, trailheadId, headers) { 
+  // must accept JSON response
+  if (acceptTypeIsNotJSON(headers)) { 
+    return acceptTypeError;
+  }
+
   // error if user can't be authenticated 
-  const userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+  const userData = await verifyUser(headers.authorization).catch(error => console.log("error authenticating user", error));
 
   if (userData === false) {
     return userNotAuthenticatedError;
@@ -909,25 +924,25 @@ app.patch("/trailheads/:trailheadId", async(req, res) => {
 
 // deletes a trail from datastore if the authenticated user owns it
 app.delete("/trails/:trailId", async(req, res) => {
-  const result = await deleteEntity(req.params.trailId, TRAIL, req.headers.authorization).catch(error => console.log(error));
+  const result = await deleteEntity(req.params.trailId, TRAIL, req.headers).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
 // deletes a trailhead from datastore. also removes it from any trail it is assigned to. no authentication
 app.delete("/trailheads/:trailheadId", async(req, res) => {
-  const result = await deleteEntity(req.params.trailheadId, TRAILHEAD, req.headers.authorization).catch(error => console.log(error));
+  const result = await deleteEntity(req.params.trailheadId, TRAILHEAD, req.headers).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
 // adds a trailhead to a trail, if the authenticated user owns that trail
 app.put('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
-  const result = await assignTrailheadToTrail(req.params.trailId, req.params.trailheadId, req.headers.authorization).catch(error => console.log(error));
+  const result = await assignTrailheadToTrail(req.params.trailId, req.params.trailheadId, req.headers).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
 // removes a trailhead from a trail, if the authenticated user owns that trail
 app.delete('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
-  const result = await removeTrailheadFromTrail(req.params.trailId, req.params.trailheadId, req.headers.authorization).catch(error => console.log(error));
+  const result = await removeTrailheadFromTrail(req.params.trailId, req.params.trailheadId, req.headers).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
