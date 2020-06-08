@@ -293,6 +293,7 @@ function makeNextPageURL(type, cursor) {
 // errors: user can't be authenticated; user doesn't own this entity; entity can't be found 
 // output on success: entity data formatted by its type in JSON
 async function getEntity(id, type, headers) {
+  // must accept JSON response
   if (acceptTypeIsNotJSON(headers)) { 
     return acceptTypeError;
   }
@@ -334,7 +335,12 @@ async function getEntity(id, type, headers) {
 // get page of results for a type of entity
 // input: type of entity (e.g. TRAIL, TRAILHEAD); if nextPageCursor is defined, results start at that page
 // output: array of formatted items; next URL contains next page of results, if it exists
-async function getEntitiesPagination(type, idToken, nextPageCursor) {
+async function getEntitiesPagination(type, headers, nextPageCursor) {
+  // must accept JSON response
+  if (acceptTypeIsNotJSON(headers)) { 
+    return acceptTypeError;
+  }
+
   // all responses get code 200; data will hold items, self URL, and next URL if needed
   const response = {
     "code": 200,
@@ -345,7 +351,7 @@ async function getEntitiesPagination(type, idToken, nextPageCursor) {
 
   // if this entity is protected, authenticate the user
   if (type.protected) {
-    userData = await verifyUser(idToken).catch(error => console.log("error authenticating user", error));
+    userData = await verifyUser(headers.authorization).catch(error => console.log("error authenticating user", error));
 
     if (userData === false) {
       return userNotAuthenticatedError;
@@ -872,13 +878,13 @@ app.get('/trailheads/:trailheadId', async function(req, res){
 
 // returns array of all trails that are owned by the authenticated user, with pagination
 app.get('/trails', async function(req, res){
-  const result = await getEntitiesPagination(TRAIL, req.headers.authorization, req.query.nextPage);
+  const result = await getEntitiesPagination(TRAIL, req.headers, req.query.nextPage);
   res.status(result.code).send(result.data);
 });
 
 // returns array of all trailheads, with pagination
 app.get('/trailheads', async function(req, res){
-  const result = await getEntitiesPagination(TRAILHEAD, req.headers.authorization, req.query.nextPage);
+  const result = await getEntitiesPagination(TRAILHEAD, req.headers, req.query.nextPage);
   res.status(result.code).send(result.data);
 });
 
@@ -944,7 +950,7 @@ app.delete('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
 
 // returns userId, first name, adn last name of all users (no authentication required)
 app.get('/users', async(req, res) => {
-  const result = await getEntitiesPagination(USER, req.headers.authorization, req.query.nextPage).catch(error => console.log(error));
+  const result = await getEntitiesPagination(USER, req.headers, req.query.nextPage).catch(error => console.log(error));
   res.status(result.code).send(result.data);
 });
 
