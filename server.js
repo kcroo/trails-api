@@ -103,6 +103,14 @@ const itemNotFoundError = {
   }
 };
 
+// error when trying to access a route that is not supported by API 
+const methodNotAllowedError = {
+  "code": 405,
+  "data": {
+    "error": "That method is not allowed."
+  }
+}
+
 // error when request's Accept header isn't set to */* or JSON (or HTML for getBoat)
 const acceptTypeError = {
   "code": 406,
@@ -934,6 +942,12 @@ app.delete("/trailheads/:trailheadId", async(req, res) => {
   res.status(result.code).send(result.data);
 });
 
+// can't get a trail's trailheads directoy -> 405 error
+app.put('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
+  const result = await assignTrailheadToTrail(req.params.trailId, req.params.trailheadId, req.headers).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
 // adds a trailhead to a trail, if the authenticated user owns that trail
 app.put('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
   const result = await assignTrailheadToTrail(req.params.trailId, req.params.trailheadId, req.headers).catch(error => console.log(error));
@@ -949,6 +963,27 @@ app.delete('/trails/:trailId/trailheads/:trailheadId', async(req, res) => {
 // returns userId, first name, adn last name of all users (no authentication required)
 app.get('/users', async(req, res) => {
   const result = await getEntitiesPagination(USER, req.headers, req.query.nextPage).catch(error => console.log(error));
+  res.status(result.code).send(result.data);
+});
+
+// no other methods allowed for /trails
+app.all('/trails', async(req, res) => {
+  const result = methodNotAllowedError;
+  res.setHeader('Allow', 'GET, POST')
+  res.status(result.code).send(result.data);
+});
+
+// no other methods allowed for /trailheads
+app.all('/trailheads', async(req, res) => {
+  const result = methodNotAllowedError;
+  res.setHeader('Allow', 'GET, POST')
+  res.status(result.code).send(result.data);
+});
+
+// no other methods allowed for /users
+app.all('/users', async(req, res) => {
+  const result = methodNotAllowedError;
+  res.setHeader('Allow', 'GET')
   res.status(result.code).send(result.data);
 });
 
