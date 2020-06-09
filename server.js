@@ -1,6 +1,6 @@
 /*
 Author: Kirsten Corrao
-Date: 5/30/2020
+Date: 06/08/2020
 Final Project
 Sources:
 GAE Documentation for node.js
@@ -40,8 +40,8 @@ nunjucks.configure('views', {
 const datastore = new Datastore();
 
 // url to add all other routes to
-const URL = "http://localhost:8001/";
-//const URL = "https://hw7b-493-corraok.wl.r.appspot.com/";
+//const URL = "http://localhost:8001/";
+const URL = "https://final-493-corraok.wl.r.appspot.com/";
 
 // number of entities to display per page in pagination 
 const RESULTS_PER_PAGE = 5;
@@ -85,6 +85,14 @@ const relationshipDoesNotExistError = {
   "code": 403,
   "data": {
     "error": "That relationship does not exist."
+  }
+};
+
+// error when non-protected resource is not found
+const doesNotExistError = {
+  "code": 404,
+  "data": {
+    "error": "The requested item does not exist."
   }
 };
 
@@ -317,14 +325,17 @@ async function getEntity(id, type, headers) {
       return userNotAuthenticatedError;
     }
 
+    // if it doesn't exist or user doesn't own it -> 403
     entity = await getEntityFromDatastore(id, type, userData.payload.sub).catch(error => console.log(error));
+    if (!entity) {
+      return forbiddenError;
+    }
   } else {
+    // if it doesn't exist -> 404 (not protected)
     entity = await getEntityFromDatastore(id, type, null).catch(error => console.log(error));
-  }
-
-  // if entity doesn't exist or doesn't belong to this user, return 403 error
-  if (!entity) {
-    return forbiddenError;
+    if (!entity) {
+      return doesNotExistError;
+    }
   }
 
   // make response object,
@@ -509,13 +520,14 @@ async function putEntity(id, type, headers, body) {
 
     updatedEntity.data.userId = userData.payload.sub;
     entity = await getEntityFromDatastore(id, type, userData.payload.sub).catch(error => console.log(error));
+    if (!entity) {
+      return forbiddenError;
+    }
   } else {
     entity = await getEntityFromDatastore(id, type, null).catch(error => console.log(error));
-  }
-
-  // error if no entity for that user if protected; or no item at all if not
-  if (!entity) {
-    return forbiddenError;
+    if (!entity) {
+      return doesNotExistError;
+    }
   }
 
   // update entity according to body data sent by client (use updatedEntity -- body may have additional attributes that you don't want)
@@ -565,14 +577,16 @@ async function patchEntity(id, type, headers, body) {
     }
 
     updatedEntity.data.userId = userData.payload.sub;
+
     entity = await getEntityFromDatastore(id, type, userData.payload.sub).catch(error => console.log(error));
+    if (!entity) {
+      return forbiddenError;
+    }
   } else {
     entity = await getEntityFromDatastore(id, type, null).catch(error => console.log(error));
-  }
-
-  // if entity doesn't exist, or the entity is protected and doesn't belong to this user -> return 403
-  if (!entity) {
-    return forbiddenError;
+    if (!entity) {
+      return doesNotExistError;
+    }
   }
 
   // update attributes that are in body
@@ -599,14 +613,13 @@ async function patchEntity(id, type, headers, body) {
   return updatedEntity;
 }
 
+// removes any relationships that a trail or trailhead has with other trails/trailheads. use this before deleting a trail or trailhead
+// input: entity to remove relationships from and its type (TRAIL, TRAILHEAD)
+// output: removes this entity's ID from all other related entities
 async function removeRelationships(entity, type) {
   if (type === TRAIL) {
-    console.log("removing relationship");
-    console.log("trailEntity: ", entity);
-
     for (const trailheadId of entity.trailheads) {
       let trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD, null).catch(error => console.log(error));
-      console.log("trailheadEntity: ", trailheadEntity);
       
       trailheadEntity.trails = trailheadEntity.trails.filter(trailId => {
         return trailId != entity[Datastore.KEY].id;
@@ -615,12 +628,8 @@ async function removeRelationships(entity, type) {
       await datastore.update(trailheadEntity).catch(error => console.log(error));
     }
   } else if (type === TRAILHEAD) {
-    console.log("removing relationship");
-    console.log("trailheadEntity: ", entity);
-
     for (const trailId of entity.trails) {
       const trailEntity = await getEntityFromDatastore(trailId, TRAIL, null).catch(error => console.log(error));
-      console.log("trailEntity: ", trailEntity);
 
       trailEntity.trailheads = trailEntity.trailheads.filter(trailheadId => {
         return trailheadId != entity[Datastore.KEY].id;
@@ -652,13 +661,14 @@ async function deleteEntity(id, type, headers) {
     } 
 
     entity = await getEntityFromDatastore(id, type, userData.payload.sub).catch(error => console.log(error));
+    if (!entity) {
+      return forbiddenError;
+    }
   } else {
     entity = await getEntityFromDatastore(id, type, null).catch(error => console.log(error));
-  }
-
-  // 403 if entity can't be found or doesn't belong to this user
-  if (!entity) {
-    return forbiddenError;
+    if (!entity) {
+      return doesNotExistError;
+    }
   }
 
   // check if entity is related to any other entities
@@ -696,8 +706,10 @@ async function assignTrailheadToTrail(trailId, trailheadId, headers) {
   const trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD, null).catch(error => console.log(error));
 
   // error if trail or trailhead doesn't exist, or if user doesn't own it; or if trailhead is already assigned to that trail
-  if (!trailEntity || !trailheadEntity) {
+  if (!trailEntity) {
     return forbiddenError;
+  } else if (!trailheadEntity) {
+    return doesNotExistError;
   } else if (trailEntity.trailheads.includes(trailheadEntity[Datastore.KEY].id) && trailheadEntity.trails.includes(trailEntity[Datastore.KEY].id)){
     return alreadyExistsError;
   } 
@@ -741,8 +753,10 @@ async function removeTrailheadFromTrail(trailId, trailheadId, headers) {
   const trailheadEntity = await getEntityFromDatastore(trailheadId, TRAILHEAD, null).catch(error => console.log(error));
 
   // error if trail or trailhead doesn't exist, or doesn't belong to this user; or if trailhead isn't already assigned to trail and vice versa
-  if (!trailEntity || !trailheadEntity) {
+  if (!trailEntity) {
     return forbiddenError;
+  } else if (!trailheadEntity) {
+    return doesNotExistError;  
   } else if (!(trailEntity.trailheads.includes(trailheadEntity[Datastore.KEY].id)) && !(trailheadEntity.trails.includes(trailEntity[Datastore.KEY].id))){
     return relationshipDoesNotExistError;
   } 
