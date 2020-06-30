@@ -1,49 +1,211 @@
-### start new gcloud project and set it as default
-gcloud projects create final-493-corraok  --set-as-default
+# Trails REST API
 
-### setup new app
-gcloud app create --project=final-493-corraok
+### This API tracks Trails, Trailheads, and Users. Users are authenticated using OAuth 2.0 and Google's People API. Trails can be related to multiple trailheads, and trailheads can be related to multiple trails. Each trail belongs to one user. Users can create, view, modify, and delete only trails that belong to them. Trailheads can be viewed, modified, or deleted by any user. All data is stored in Google's Datastore, a NoSQL database.
 
-### when prompted, choose region 
-16 for US-west2
 
-### enable billing for project
-https://console.cloud.google.com/projectselector2/billing
+#### Datastore Entities
 
-### install JS libraries in package.json
-npm install 
+* Trails
+    * Required attributes 
+        * name: string
+        * length: float
+        * difficulty: string (easy, medium, or hard)
+    * Other attributes 
+        * trailheads: array of strings; empty when Trail is created
+        * id: int; automatically generated
+        * userId: int; automatically added; ID of user who created trail in database
+    * Authentication required: yes
 
-### authenticate with new key for project
-https://cloud.google.com/docs/authentication/getting-started?authuser=1
+* Trailheads
+    * Required attributes
+        * name: string
+    * Optional attributes
+        * location: geographical point
+            * Example: {'latitude': 46.243232, 'longitude': -117.689337}
+        * fee: float
+        * trails: array of strings
+    * Other attributes 
+        * id: int; automatically generated
+    * Authentication required: no
 
-### run server locally
-export GOOGLE_APPLICATION_CREDENTIALS="final-493-corraok-key.json"
-npm start --trace-warnings
+* Users
+    * Required attributes
+        * firstName (string)
+        * lastName (string)
+    * Other attributes 
+        * id: int; automatically generated
+        * userId: int; automatically generated from JWT sub value; used to verify owner of Trails
+    * Authentication required: NA
 
-### run locally with forever; restarts if changes to files
-export GOOGLE_APPLICATION_CREDENTIALS="final-493-corraok-key.json"
-forever -w server.js
 
-### deploy to gcloud 
-gcloud app deploy 
+#### Endpoints
 
-### see list of gcloud projects 
-gcloud projects list
+###### Authentication
+GET /
+* Allows users to authenticated themselves with Google and retrieve their JWT sub value, which is used to authenticated users in this API
 
-### view/edit/delete datastore contents online
-https://console.cloud.google.com/datastore/entities;kind=Boat;ns=__$DEFAULT$__/query/kind?authuser=1&project=hw5-493-corraok&folder=&organizationId=
+###### Trails
 
-### enable google people API
+GET /trails
+* Gets all trails that belong to the authenticated user. Returns empty list if user has no trails.
+* Authentication required
+* Reponse
+    * 200: OK
+    * 401: user can't be authenticated
+    * 406: accept header doesn't allow JSON
 
-### oauth consent screen 
-application type: public 
-application name: final-493-corraok
-scopes: default (email, profile, openid)
-NO PHOTO
-URL: project URL
+GET /trails/:trail_id
+* Gets specified trail, if it belongs to the authenticated user
+* Authentication required
+* Required parameters 
+    * ID of trail
+* Reponse
+    * 200: OK
+    * 401: user can't be authenticated
+    * 403: trail doesn't exist or doesn't belong to this user
+    * 406: accept header doesn't allow JSON
 
-### create oauth client ID 
-application type: web application
-name: final-493-corraok
-authorized javascript origins: http://localhost:8001
-authorized redirect URIs: http://localhost:8001/users
+POST /trails
+* Creates new trail belonging to the authenticated user
+* Authentication required
+* Required parameters 
+    * name
+    * length
+    * difficulty
+* Response: JSON
+    * 201: created
+    * 400: request was missing a required attribute
+    * 401: user can't be authenticated
+    * 406: accept header doesn't allow JSON
+
+PATCH /trails/:trail_id
+* Edits some or all properties of specified trail, if it belongs to the authenticated user
+* Authentication required
+* Required parameters 
+    * ID of trail
+* Optional parameters 
+    * name
+    * length
+    * difficulty
+* Reponse
+    * 204: no content (successfully updated)
+    * 401: user can't be authenticated
+    * 403: trail doesn't exist or doesn't belong to this user
+    * 406: accept header doesn't allow JSON
+
+PUT /trails/:trail_id
+* Edits all properties of specified trail, if it belongs to the authenticated user
+* Authentication required
+* Required parameters 
+    * ID of trail
+    * name
+    * length
+    * difficulty
+
+* Reponse
+    * 204: no content (successfully updated)
+    * 400: request was missing a required attribute 
+    * 401: user can't be authenticated
+    * 403: trail doesn't exist or doesn't belong to this user
+    * 406: accept header doesn't allow JSON
+
+DELETE /trails/:trail_id
+* Deletes the specified trail, if it belongs to the authenticated user
+* Authentication required
+* Required parameters 
+    * ID of trail
+* Reponse
+    * 204: no content (successfully deleted)
+    * 401: user can't be authenticated
+    * 403: trail doesn't exist or doesn't belong to this user
+    * 406: accept header doesn't allow JSON
+
+###### Trailheads
+
+GET /trailheads
+* Gets all trailheads. Returns empty list if none exist.
+* Reponse
+    * 200: OK
+    * 406: accept header doesn't allow JSON
+
+GET /trailheads/:trailhead_id
+* Gets specified trailhead
+* Required parameters 
+    * ID of trail
+* Reponse
+    * 200: OK
+    * 404: trailhead doesn't exist
+    * 406: accept header doesn't allow JSON
+
+POST /trailheads
+* Creates new trailhead
+* Required parameters 
+    * name
+    * location
+    * fee
+* Response: JSON
+    * 201: created
+    * 400: request was missing a required attribute
+    * 406: accept header doesn't allow JSON
+
+PATCH /trailheads/:trailhead_id
+* Edits some or all properties of specified trailhead
+* Required parameters 
+    * ID of trailhead
+* Optional parameters 
+    * name
+    * location
+    * fee
+* Reponse
+    * 204: no content (successfully updated)
+    * 404: trailhead doesn't exist
+    * 406: accept header doesn't allow JSON
+
+PUT /trailheads/:trailhead_id
+* Edits all properties of specified trailhead
+* Required parameters 
+    * ID of trailhead
+    * name
+    * location
+    * fee
+
+* Reponse
+    * 204: no content (successfully updated)
+    * 404: trailhead doesn't exist
+    * 406: accept header doesn't allow JSON
+
+DELETE /trailheads/:trailhead_id
+* Deletes the specified trailhead
+* Required parameters 
+    * ID of trailhead
+* Reponse
+    * 204: no content (successfully deleted)
+    * 404: trailhead doesn't exist
+    * 406: accept header doesn't allow JSON
+
+###### Trails <-> Trailheads
+PUT /trails/:trail_id/trailhead/:trailhead_id
+* Assigns a trailhead to a trail, if the trail belongs to the authenticated user
+* Authentication required
+* Required parameters 
+    * ID of trail
+    * ID of trailhead
+* Reponse
+    * 204: no content (successfully assigned trailhead)
+    * 401: user can't be authenticated
+    * 403: trail doesn't exist or doesn't belong to this user
+    * 404: trailhead doesn't exist
+    * 406: accept header doesn't allow JSON
+
+DELETE /trails/:trail_id/trailhead/:trailhead_id
+* Un-assigns a trailhead from a trail, if the trail belongs to the authenticated user
+* Authentication required
+* Required parameters 
+    * ID of trail
+    * ID of trailhead
+* Reponse
+    * 204: no content (successfully un-assigned trailhead)
+    * 401: user can't be authenticated
+    * 403: trail doesn't exist or doesn't belong to this user
+    * 404: trailhead doesn't exist
+    * 406: accept header doesn't allow JSON
