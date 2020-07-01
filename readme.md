@@ -1,9 +1,9 @@
 # Trails REST API
 
-### This API tracks Trails, Trailheads, and Users. Users are authenticated using OAuth 2.0 and Google's People API. Trails can be related to multiple trailheads, and trailheads can be related to multiple trails. Each trail belongs to one user. Users can create, view, modify, and delete only trails that belong to them. Trailheads can be viewed, modified, or deleted by any user. All data is stored in Google's Datastore, a NoSQL database.
+This API tracks Trails, Trailheads, and Users. Users are authenticated using OAuth 2.0 and Google's People API. Trails can be related to multiple trailheads, and trailheads can be related to multiple trails. Each trail belongs to one user. Users can create, view, modify, and delete only trails that belong to them. Trailheads can be viewed, modified, or deleted by any user. All data is stored in Google's Datastore, a NoSQL database.
 
 
-#### Datastore Entities
+### Datastore Entities
 
 * Trails
     * Required attributes 
@@ -38,13 +38,13 @@
     * Authentication required: NA
 
 
-#### Endpoints
+### Endpoints
 
-###### Authentication
+##### Authentication
 GET /
 * Allows users to authenticated themselves with Google and retrieve their JWT sub value, which is used to authenticated users in this API
 
-###### Trails
+##### Trails
 
 GET /trails
 * Gets all trails that belong to the authenticated user. Returns empty list if user has no trails.
@@ -120,7 +120,7 @@ DELETE /trails/:trail_id
     * 403: trail doesn't exist or doesn't belong to this user
     * 406: accept header doesn't allow JSON
 
-###### Trailheads
+##### Trailheads
 
 GET /trailheads
 * Gets all trailheads. Returns empty list if none exist.
@@ -183,7 +183,7 @@ DELETE /trailheads/:trailhead_id
     * 404: trailhead doesn't exist
     * 406: accept header doesn't allow JSON
 
-###### Trails <-> Trailheads
+##### Trails <-> Trailheads
 PUT /trails/:trail_id/trailhead/:trailhead_id
 * Assigns a trailhead to a trail, if the trail belongs to the authenticated user
 * Authentication required
@@ -211,7 +211,7 @@ DELETE /trails/:trail_id/trailhead/:trailhead_id
     * 406: accept header doesn't allow JSON
 
 
-#### Postman Tests
+### Postman Tests
 * Test suite contained in trails-api.postman_collection.json
 * Must use environment file, trails-api.postman_environment.json
     * Authenticate two users at https://trails-api.wl.r.appspot.com
