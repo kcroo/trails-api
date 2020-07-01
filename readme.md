@@ -209,3 +209,22 @@ DELETE /trails/:trail_id/trailhead/:trailhead_id
     * 403: trail doesn't exist or doesn't belong to this user
     * 404: trailhead doesn't exist
     * 406: accept header doesn't allow JSON
+
+
+#### Postman Tests
+* Test suite contained in trails-api.postman_collection.json
+* Must use environment file, trails-api.postman_environment.json
+    * Authenticate two users at https://trails-api.wl.r.appspot.com
+        * Copy 1st user's JWT and User ID to jwt1 and user_id1
+        * Copy 2nd user's JWT and User ID to jwt2 and user_id2
+    * Authenticate a user at https://trails-api.wl.r.appspot.com
+        * Copy their JWT to jwt1 in the environment file
+        * Copy their User ID to user_id1 in the environment file
+    * Authenticate another user at 
+    * app_url: https://trails-api.wl.r.appspot.com
+    * jwt1: authenticate 1st user, then paste JWT here
+    * user_id1: authenticate 1st user, then paste User ID here
+    * jwt2: authenticate 2nd user, then paste JWT here
+    * user_id2: authenticate 2nd user, then paste User ID here
+    * invalid_jwt: enter gibberish here
+    * invalid_id: 1
