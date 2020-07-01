@@ -1,24 +1,10 @@
 /*
 Author: Kirsten Corrao
-Date: 06/08/2020
-Final Project
-Sources:
-GAE Documentation for node.js
-Nunjucks templates: https://mozilla.github.io/nunjucks/getting-started.html
-HTML input types: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
-people API discovery docs: https://developers.google.com/people/api/rest
-main source - google API library - oauth: https://github.com/googleapis/google-api-nodejs-client/#authentication-and-authorization
-authentication with id_token: https://developers.google.com/identity/sign-in/web/backend-auth
-slice to remove part of string: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice
-see if key exists in object: https://stackoverflow.com/questions/1098040/checking-if-a-key-exists-in-a-javascript-object
-pagination: https://stackoverflow.com/questions/44184469/google-cloud-datastore-how-to-query-for-more-results
-pagination: https://cloud.google.com/datastore/docs/concepts/queries?authuser=1#cursors_limits_and_offsets
-key-only queries to get total number of entities of a certain type: https://cloud.google.com/datastore/docs/concepts/queries
-sending postman requests within test with headers: https://gist.github.com/madebysid/b57985b0649d3407a7aa9de1bd327990
-geoPointValue datatype for coordinates: https://cloud.google.com/datastore/docs/concepts/entities#properties_and_value_types
+Date: 06/30/2020
+Trails API 
 */
 
-// set up necessary libraries
+// set up libraries
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require("fs");
@@ -40,8 +26,7 @@ nunjucks.configure('views', {
 const datastore = new Datastore();
 
 // url to add all other routes to
-//const URL = "http://localhost:8001/";
-const URL = "https://final-493-corraok.wl.r.appspot.com/";
+const URL = "https://trails-api.wl.r.appspot.com/";
 
 // number of entities to display per page in pagination 
 const RESULTS_PER_PAGE = 5;
