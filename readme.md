@@ -40,11 +40,11 @@ This API tracks Trails, Trailheads, and Users. Users are authenticated using OAu
 
 ### Endpoints
 
-##### Authentication
+#### Authentication
 GET /
 * Allows users to authenticated themselves with Google and retrieve their JWT sub value, which is used to authenticated users in this API
 
-##### Trails
+#### Trails
 
 GET /trails
 * Gets all trails that belong to the authenticated user. Returns empty list if user has no trails.
@@ -120,7 +120,7 @@ DELETE /trails/:trail_id
     * 403: trail doesn't exist or doesn't belong to this user
     * 406: accept header doesn't allow JSON
 
-##### Trailheads
+#### Trailheads
 
 GET /trailheads
 * Gets all trailheads. Returns empty list if none exist.
@@ -183,7 +183,7 @@ DELETE /trailheads/:trailhead_id
     * 404: trailhead doesn't exist
     * 406: accept header doesn't allow JSON
 
-##### Trails <-> Trailheads
+#### Trails <-> Trailheads
 PUT /trails/:trail_id/trailhead/:trailhead_id
 * Assigns a trailhead to a trail, if the trail belongs to the authenticated user
 * Authentication required
@@ -220,11 +220,4 @@ DELETE /trails/:trail_id/trailhead/:trailhead_id
     * Authenticate a user at https://trails-api.wl.r.appspot.com
         * Copy their JWT to jwt1 in the environment file
         * Copy their User ID to user_id1 in the environment file
-    * Authenticate another user at 
-    * app_url: https://trails-api.wl.r.appspot.com
-    * jwt1: authenticate 1st user, then paste JWT here
-    * user_id1: authenticate 1st user, then paste User ID here
-    * jwt2: authenticate 2nd user, then paste JWT here
-    * user_id2: authenticate 2nd user, then paste User ID here
-    * invalid_jwt: enter gibberish here
-    * invalid_id: 1
+        
