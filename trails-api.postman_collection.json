@@ -1,0 +1,6389 @@
+{
+	"info": {
+		"_postman_id": "5fde9f4d-01cb-407e-b8de-63219e0f54f0",
+		"name": "trails-api",
+		"description": "Test suite for Trails REST API. Requires environment containing app_url (https://trails-api.wl.r.appspot.com), jwt1 and user_id1 (from / redirecting to /user page), and jwt2 and user_id 2 (from / redirecting to /user page)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "get all users 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "684e4cf8-78dc-4ccc-ac84-70abf9643b6c",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/cmd",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/users",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete users 405 - not allowed",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "389b10c4-ca38-4c12-be8a-c71011d5bd76",
+						"exec": [
+							"pm.test(\"405 status code\", function () {",
+							"    pm.response.to.have.status(405);",
+							"});",
+							"",
+							"pm.test(\"405 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That method is not allowed.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/users",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all users 200 - no JWT (OK)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "504c3dc4-44fa-4fd2-9ab0-1966929894fc",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"At least 2 users\", function () {",
+							"    pm.expect(pm.response.json().items.length).to.be.at.least(2);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/users",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all trails 200 - jwt1 - no trails",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c067570a-7389-489f-aea1-ea42cb6c73d1",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"0 trails exist\", function () {",
+							"    pm.expect(pm.response.json().items.length).to.eq(0);",
+							"});",
+							"",
+							"pm.test(\"no next page\", function () {",
+							"    pm.expect(pm.response.json().next === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete all trails 405 - not allowed",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f39a7d32-3cd0-4102-a30a-195cedf3afee",
+						"exec": [
+							"pm.test(\"405 status code\", function () {",
+							"    pm.response.to.have.status(405);",
+							"});",
+							"",
+							"pm.test(\"405 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That method is not allowed.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 401 - invalid JWT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4ec48146-576f-489d-adf5-5674e57646be",
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Middle Point Ridge\",\r\n  \"length\": 5.9,\r\n  \"difficulty\": \"Moderate\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 401 - no JWT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "55d066be-1eab-431f-8b02-92f420ccdec2",
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Middle Point Ridge\",\r\n  \"length\": 5.9,\r\n  \"difficulty\": \"Moderate\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 400 - missing attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a4dfaf44-1853-4481-8ed8-3ad635259570",
+						"exec": [
+							"pm.test(\"400 status code\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The requested object is missing at least one of the required attributes\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Middle Point Ridge\",\r\n  \"length\": 5.9\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "957c3c38-6ac8-486c-b919-4874a56d86ba",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/html",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Middle Point Ridge\",\r\n  \"length\": 5.9,\r\n  \"difficulty\": \"Moderate\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 201 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "60445655-0235-4b33-813b-5cf13a1d16b0",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Grouse Mountain\");",
+							"    pm.expect(pm.response.json().length).to.eq(5.0);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Moderate\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id1\"));",
+							"});",
+							"",
+							"pm.environment.set(\"trail_id_2\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Grouse Mountain\",\r\n  \"length\": 5.0,\r\n  \"difficulty\": \"Moderate\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 201 - jwt1 - sets trail_id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b24abbcd-dfbb-482d-b24b-557aecda8108",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Middle Point Ridge\");",
+							"    pm.expect(pm.response.json().length).to.eq(5.9);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Moderate\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id1\"));",
+							"});",
+							"",
+							"pm.environment.set(\"trail_id\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Middle Point Ridge\",\r\n  \"length\": 5.9,\r\n  \"difficulty\": \"Moderate\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 201 - jwt1 - ignores extra attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0b899792-1bc9-40af-85a1-3bebd9e902c1",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Lick Creek\");",
+							"    pm.expect(pm.response.json().length).to.eq(3.5);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Difficult\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id1\"));",
+							"});",
+							"",
+							"pm.test(\"Extra attribute is undefined\", function() {",
+							"    pm.expect(pm.response.json().ownership === undefined); ",
+							"});",
+							"",
+							"pm.environment.set(\"trail_id_3\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ownership\": \"Forest Service\",\r\n  \"trailheads\": [\"Grouse Mountain\"],\r\n  \"name\": \"Lick Creek\",\r\n  \"length\": 3.5,\r\n  \"difficulty\": \"Difficult\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 201 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4e898acb-230d-45e0-9162-ba794ce3cb91",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Rattlesnake\");",
+							"    pm.expect(pm.response.json().length).to.eq(5.0);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Difficult\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id1\"));",
+							"});",
+							"",
+							"pm.environment.set(\"trail_id_4\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Rattlesnake\",\r\n  \"length\": 5.0,\r\n  \"difficulty\": \"Difficult\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 201 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4aa4045d-1256-4582-b833-deda2d2fd0cd",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"    pm.expect(pm.response.json().length).to.eq(4.5);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Difficult\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id1\"));",
+							"});",
+							"",
+							"pm.environment.set(\"trail_id_5\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Tucannon\",\r\n  \"length\": 4.5,\r\n  \"difficulty\": \"Difficult\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 201 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f3b0294b-4008-408b-84a7-a7e9a8b1e39b",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Jubilee Lake\");",
+							"    pm.expect(pm.response.json().length).to.eq(2.6);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Easy\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id1\"));",
+							"});",
+							"",
+							"pm.environment.set(\"trail_id_6\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Jubilee Lake\",\r\n  \"length\": 2.6,\r\n  \"difficulty\": \"Easy\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trail 201 - jwt2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "03374f0a-e153-490f-8513-a3da3a878bf9",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Jubilee Lake\");",
+							"    pm.expect(pm.response.json().length).to.eq(2.6);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Easy\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id2\"));",
+							"});",
+							"",
+							"pm.environment.set(\"trail_id_7\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Jubilee Lake\",\r\n  \"length\": 2.6,\r\n  \"difficulty\": \"Easy\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all trails 406 - jwt1 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8987d4f5-92ca-47d5-bd1a-3e0209712c8b",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "image/gif",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all trails 200 - jwt1 - 1st page",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4244a4db-1615-49da-932d-142f948db684",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"6 trails exist for this user\", function () {",
+							"    pm.expect(pm.response.json().count).to.eq(6);",
+							"});",
+							"",
+							"pm.test(\"5 trails on this page\", function () {",
+							"    pm.expect(pm.response.json().items.length).to.eq(5);",
+							"});",
+							"",
+							"// set next URL for next get test",
+							"pm.environment.set(\"next\", pm.response.json().next);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all trails 200 - jwt1 - 2nd page",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9ceaadea-5677-41ad-a2a9-9646221671a5",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Self URL is correct\", function() {",
+							"    pm.expect(pm.response.json().self === pm.environment.get(\"next\")); ",
+							"});",
+							"",
+							"pm.test(\"6 trails exist for this user\", function () {",
+							"    pm.expect(pm.response.json().count).to.eq(6);",
+							"});",
+							"",
+							"pm.test(\"1 trail on this page\", function () {",
+							"    pm.expect(pm.response.json().items.length).to.eq(1);",
+							"});",
+							"",
+							"pm.test(\"Next page cursor is undefined\", function() {",
+							"    pm.expect(pm.response.json().next === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{next}}",
+					"host": [
+						"{{next}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all trails 200 - jwt2 - 1st page",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d21b0224-1dfb-41ca-9f4d-2e357bcd3bf7",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Self URL is correct\", function() {",
+							"    pm.expect(pm.response.json().self === pm.environment.get(\"next\")); ",
+							"});",
+							"",
+							"pm.test(\"1 trails exist for this user\", function () {",
+							"    pm.expect(pm.response.json().count).to.eq(1);",
+							"});",
+							"",
+							"pm.test(\"1 trail on this page\", function () {",
+							"    pm.expect(pm.response.json().items.length).to.eq(1);",
+							"});",
+							"",
+							"pm.test(\"Next page cursor is undefined\", function() {",
+							"    pm.expect(pm.response.json().next === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trailhead 201 - invalid JWT (OK)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "fd3b5aaf-5f51-41a9-9f43-1db52e932500",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Corporation Trailhead\");",
+							"    const location = {",
+							"  \t\"latitude\": 45.729645, ",
+							"  \t\"longitude\": -118.195757",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});",
+							"",
+							"pm.environment.set(\"trailhead_id_2\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Corporation Trailhead\",\r\n  \"location\": {\r\n  \t\"latitude\": 45.729645, \r\n  \t\"longitude\": -118.195757\r\n  },\r\n  \"fee\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trailhead 201 - no JWT (OK)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b127cbaf-5189-4e3e-b657-51c3ab2006b4",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Zig Zag Springs\");",
+							"    const location = {",
+							"  \t\"latitude\": 45.746101, ",
+							"  \t\"longitude\": -118.171250",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});",
+							"",
+							"pm.environment.set(\"trailhead_id_3\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Zig Zag Springs\",\r\n  \"location\": {\r\n  \t\"latitude\": 45.746101, \r\n  \t\"longitude\": -118.171250\r\n  },\r\n  \"fee\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trailhead 400 - missing attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9a01f33a-6d71-4326-9324-010a8f65858b",
+						"exec": [
+							"pm.test(\"400 status code\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The requested object is missing at least one of the required attributes\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Zig Zag Springs\",\r\n  \"location\": {\r\n  \t\"latitude\": 45.746101, \r\n  \t\"longitude\": -118.171250\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trailhead 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9015cb0c-c48c-4bf7-b1d1-e71631d87d26",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/html",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Tucannon\",\r\n  \"location\": {\r\n  \t\"latitude\": 46.243232, \r\n  \t\"longitude\": -117.689337\r\n  },\r\n  \"fee\": 5\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trailhead 201 - jwt1 - sets trailhead_id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "188483dc-704b-4af8-8e2a-4943be1bfbb7",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"    const location = {",
+							"  \t\"latitude\": 46.243232, ",
+							"  \t\"longitude\": -117.689337",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(5);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});",
+							"",
+							"pm.environment.set(\"trailhead_id\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Tucannon\",\r\n  \"location\": {\r\n  \t\"latitude\": 46.243232, \r\n  \t\"longitude\": -117.689337\r\n  },\r\n  \"fee\": 5\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trailhead 201 - jwt2 - ignores extra attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8047571e-24c0-4860-acd9-a8d51ab6b377",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Timothy Springs\");",
+							"    const location = {",
+							"  \t\"latitude\": 45.864548, ",
+							"  \t\"longitude\": -117.892364",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(5);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});",
+							"",
+							"pm.test(\"Extra attribute is undefined\", function() {",
+							"    pm.expect(pm.response.json().organization === undefined); ",
+							"});",
+							"",
+							"pm.environment.set(\"trailhead_id_4\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"organization\": \"Forest Service\",\r\n  \"name\": \"Timothy Springs\",\r\n  \"location\": {\r\n  \t\"latitude\": 45.864548, \r\n  \t\"longitude\": -117.892364\r\n  },\r\n  \"fee\": 5\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trailhead 201 - jwt2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e0fcb4f0-7261-4abc-ba29-825bc5bac0dc",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Moon Meadow\");",
+							"    const location = {",
+							"  \t\"latitude\": 44.934189, ",
+							"  \t\"longitude\": -118.547575",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});",
+							"",
+							"pm.environment.set(\"trailhead_id_5\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Moon Meadow\",\r\n  \"location\": {\r\n  \t\"latitude\": 44.934189, \r\n  \t\"longitude\": -118.547575\r\n  },\r\n  \"fee\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add trailhead 201 - jwt2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "fb236c6a-9d5b-4abb-938e-dfbff37210dd",
+						"exec": [
+							"pm.test(\"201 status code\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Middle Point\");",
+							"    const location = {",
+							"  \t\"latitude\": 46.135993, ",
+							"  \t\"longitude\": -117.808533",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});",
+							"",
+							"pm.environment.set(\"trailhead_id_6\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Middle Point\",\r\n  \"location\": {\r\n  \t\"latitude\": 46.135993, \r\n  \t\"longitude\": -117.808533\r\n  \t\r\n  },\r\n  \"fee\": 0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete all trailheads 405 - jwt1 - method not allowed",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9be0eda3-6529-4298-9e0e-0aaef7287605",
+						"exec": [
+							"pm.test(\"405 status code\", function () {",
+							"    pm.response.to.have.status(405);",
+							"});",
+							"",
+							"pm.test(\"405 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That method is not allowed.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "text/plain",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all trailheads 406 - jwt1 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "cc18c56c-8e25-4308-aa29-24e6757cd689",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/plain",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all trailheads 200 - jwt1 - 1st page",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ef92a739-626a-4bfd-86c8-4d196a81cdc3",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"6 trailheads exists\", function () {",
+							"    pm.expect(pm.response.json().count).to.eq(6);",
+							"});",
+							"",
+							"pm.test(\"5 trailheads on this page\", function () {",
+							"    pm.expect(pm.response.json().items.length).to.eq(5);",
+							"});",
+							"",
+							"// set next URL for next get test",
+							"pm.environment.set(\"next\", pm.response.json().next);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all trailheads 200 - jwt1 - 2nd page",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2fbe5287-5789-4128-8b37-9a13bc615f6d",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Self URL is correct\", function() {",
+							"    pm.expect(pm.response.json().self === pm.environment.get(\"next\")); ",
+							"});",
+							"",
+							"pm.test(\"6 trailheads exist\", function () {",
+							"    pm.expect(pm.response.json().count).to.eq(6);",
+							"});",
+							"",
+							"pm.test(\"1 trailhead on this page\", function () {",
+							"    pm.expect(pm.response.json().items.length).to.eq(1);",
+							"});",
+							"",
+							"pm.test(\"Next page cursor is undefined\", function() {",
+							"    pm.expect(pm.response.json().next === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{next}}",
+					"host": [
+						"{{next}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all trailheads 200 - jwt2 - 1st page",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b091665a-cb65-4486-8460-b341e3576018",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"6 trailheads exists\", function () {",
+							"    pm.expect(pm.response.json().count).to.eq(6);",
+							"});",
+							"",
+							"pm.test(\"5 trailheads on this page\", function () {",
+							"    pm.expect(pm.response.json().items.length).to.eq(5);",
+							"});",
+							"",
+							"// set next URL for next get test",
+							"pm.environment.set(\"next\", pm.response.json().next);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all trailheads 200 - jwt2 - 2nd page",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "690e4658-b1a0-472b-8e49-4d933e14dbb1",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Self URL is correct\", function() {",
+							"    pm.expect(pm.response.json().self === pm.environment.get(\"next\")); ",
+							"});",
+							"",
+							"pm.test(\"6 trailheads exist\", function () {",
+							"    pm.expect(pm.response.json().count).to.eq(6);",
+							"});",
+							"",
+							"pm.test(\"1 trailhead on this page\", function () {",
+							"    pm.expect(pm.response.json().items.length).to.eq(1);",
+							"});",
+							"",
+							"pm.test(\"Next page cursor is undefined\", function() {",
+							"    pm.expect(pm.response.json().next === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{next}}",
+					"host": [
+						"{{next}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trail by id 401 - no jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "97aa1619-b20a-460d-8fc2-f70d63539252",
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trail by id 401 - invalid jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ece4e422-a35e-4299-856c-eb59408e19d0",
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trail by id 403 - wrong jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "530e6a52-0765-403a-b3d8-22ec87887cbd",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trail by id 403 - invalid trail_id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3b9303b8-1485-44af-b863-77a1454e9053",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{invalid_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{invalid_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trail by id 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d8b55d78-0f02-4d4f-ab21-644dbf2a84b8",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/html",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trail by id 200 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "90d01f1e-6667-4ad5-a948-645563362f4f",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Middle Point Ridge\");",
+							"    pm.expect(pm.response.json().length).to.eq(5.9);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Moderate\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id1\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trail by id 200 - jwt2 - tr7",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5bc6405f-0282-4d82-8d0d-deb8c64c26e1",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Jubilee Lake\");",
+							"    pm.expect(pm.response.json().length).to.eq(2.6);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Easy\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id2\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_7}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_7}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trailhead by id 404 - invalid id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6965229d-d327-4e2a-92ef-101c3f340290",
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The requested item does not exist.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "text/css",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{invalid_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{invalid_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trailhead by id 406 - accept not json",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "423b4ea1-17bb-445c-b153-8128a1945649",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "text/css"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trailhead by id 200 - no jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "cde3bbc6-ad6e-4ae1-81a3-fea14e107116",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"    const location = {",
+							"  \t\"latitude\": 46.243232, ",
+							"  \t\"longitude\": -117.689337",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(5);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trailhead by id 200 - invalid jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7c0f1434-0e30-4579-a820-910009d0def5",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"    const location = {",
+							"  \t\"latitude\": 46.243232, ",
+							"  \t\"longitude\": -117.689337",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(5);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trailhead by id 200 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3f2bbb58-bc4c-4573-8696-2a207f5fc58b",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"    const location = {",
+							"  \t\"latitude\": 46.243232, ",
+							"  \t\"longitude\": -117.689337",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(5);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trailhead by id 200 - jwt2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "381cd9cb-62b0-4ba0-abbc-67058f07e02a",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"    const location = {",
+							"  \t\"latitude\": 46.243232, ",
+							"  \t\"longitude\": -117.689337",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(5);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trailhead by id 200 - th4",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "45f2f48c-0787-48ab-b539-28f5880ad4b6",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Timothy Springs\");",
+							"    const location = {",
+							"  \t\"latitude\": 45.864548, ",
+							"  \t\"longitude\": -117.892364",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(5);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id_4}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id_4}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get trailhead by id 200 - th6",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "94adeb13-b885-4963-ab70-90cd0d281981",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    const location = {",
+							"  \t\"latitude\": 46.135993, ",
+							"  \t\"longitude\": -117.808533",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});",
+							"",
+							"pm.test(\"userId is undefined\", function() {",
+							"    pm.expect(pm.response.json().userId === undefined); ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id_6}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id_6}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trail 400 - missing attribute",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "838607e8-e394-43ea-b52f-cb18d5d42971",
+						"exec": [
+							"pm.test(\"400 status code\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"400 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The requested object is missing at least one of the required attributes\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"length\": 3.2,\r\n  \"difficulty\": \"Difficult\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trail 401- no jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c4f5a10b-7f01-4e6d-b831-a6d0b7f98b96",
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Rough Fork\",\r\n  \"length\": 3.2,\r\n  \"difficulty\": \"Difficult\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trail 401- invalid jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0cb2a31f-3cf1-4cf4-8d36-83eec8446120",
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Rough Fork\",\r\n  \"length\": 3.2,\r\n  \"difficulty\": \"Difficult\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trail 403 - wrong jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "bd23d465-f48b-4810-b493-42c9b719bf3b",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Rough Fork\",\r\n  \"length\": 3.2,\r\n  \"difficulty\": \"Difficult\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trail 403 - invalid trail id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4f27644a-3406-44af-a44e-4fe55db682d0",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Rough Fork\",\r\n  \"length\": 3.2,\r\n  \"difficulty\": \"Difficult\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{invalid_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{invalid_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trail 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3495289b-fbf6-4b67-a9ef-d30afc6889f6",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "text/html",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Rough Fork\",\r\n  \"length\": 3.2,\r\n  \"difficulty\": \"Difficult\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trail 200 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2e04d28d-7473-4043-b5ac-5f1d3c213fba",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Rough Fork\");",
+							"    pm.expect(pm.response.json().length).to.eq(3.2);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Difficult\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id1\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Rough Fork\",\r\n  \"length\": 3.2,\r\n  \"difficulty\": \"Difficult\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trailhead 404 - invalid trailhead id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7139be5e-22e3-42a2-b65d-3e7b9a7f28dc",
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The requested item does not exist.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Crane Creek\",\r\n  \"location\": {\r\n  \t\"latitude\": 44.886262, \r\n  \t\"longitude\": -118.405325\r\n  \t\r\n  },\r\n  \"fee\": 0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{invalid_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{invalid_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trailhead 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "72fc02d5-1055-46b5-b7fb-6310bff6840d",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "text/html",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Crane Stream\",\r\n  \"location\": {\r\n  \t\"latitude\": 44.886260, \r\n  \t\"longitude\": -118.405320\r\n  \t\r\n  },\r\n  \"fee\": 5.0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trailhead 200 - no jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "413cbd94-36b0-40c6-8492-2c163908cdfd",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Crane Creek\");",
+							"    const location = {",
+							"  \t\"latitude\": 44.886262, ",
+							"  \t\"longitude\": -118.405325",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(0);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Crane Creek\",\r\n  \"location\": {\r\n  \t\"latitude\": 44.886262, \r\n  \t\"longitude\": -118.405325\r\n  \t\r\n  },\r\n  \"fee\": 0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trailhead 200 - invalid jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c280ada4-de96-4c7a-a59c-67697911394e",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Crane Creek\");",
+							"    const location = {",
+							"  \t\"latitude\": 44.886262, ",
+							"  \t\"longitude\": -118.405325",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(5.0);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Crane Creek\",\r\n  \"location\": {\r\n  \t\"latitude\": 44.886262, \r\n  \t\"longitude\": -118.405325\r\n  \t\r\n  },\r\n  \"fee\": 5.0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trailhead 200 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f3e48f51-11d0-4af9-ba29-dafe8828a4d1",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Crane Stream\");",
+							"    const location = {",
+							"  \t\"latitude\": 44.886260, ",
+							"  \t\"longitude\": -118.405320",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(5.0);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Crane Stream\",\r\n  \"location\": {\r\n  \t\"latitude\": 44.886260, \r\n  \t\"longitude\": -118.405320\r\n  \t\r\n  },\r\n  \"fee\": 5.0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put trailhead 200 - jwt2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2c4d0b55-9ba3-4202-98ab-14685bf679fd",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"  pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"  const location = {",
+							"  \"latitude\": 46.243232, ",
+							"  \"longitude\": -117.689337",
+							"  };",
+							"  pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"  pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"  pm.expect(pm.response.json().fee).to.eq(5);",
+							"  pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"  const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"  pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Tucannon\",\r\n  \"location\": {\r\n  \t\"latitude\": 46.243232, \r\n  \t\"longitude\": -117.689337\r\n  },\r\n  \"fee\": 5\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trail 403 - no jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "60b78913-e242-4037-b90d-59cb67f14f37",
+						"exec": [
+							"pm.test(\"401 unauthorized\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"difficulty\": \"Moderate\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trail 401- invalid jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7dca90a0-ced1-41ce-8da8-51d23a405196",
+						"exec": [
+							"pm.test(\"401 unauthorized\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"difficulty\": \"Moderate\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trail 403 - wrong jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "23f86dea-0c2c-4c55-b919-ea77aa62515d",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"difficulty\": \"Moderate\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trail 403 - invalid trail id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "62d4cbbd-7f8d-4d6a-9e04-f1e7b8ea868b",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"difficulty\": \"Moderate\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{invalid_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{invalid_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trail 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8cf99a3e-1d42-49cd-bc7b-150dfb73298a",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "text/html",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"difficulty\": \"Moderate\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trail 200 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c2f5c86d-3fe3-413c-a998-7a4f8e784fce",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Rough Fork\");",
+							"    pm.expect(pm.response.json().length).to.eq(3.2);",
+							"    pm.expect(pm.response.json().difficulty).to.eq(\"Moderate\");",
+							"    pm.expect(pm.response.json().trailheads.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trails/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"    pm.expect(pm.response.json().userId).to.eq(pm.environment.get(\"user_id1\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"difficulty\": \"Moderate\"\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trailhead 404 - invalid trailhead id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9af596e0-6e27-4949-ab1a-9112ae40faf5",
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The requested item does not exist.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"location\": {\r\n  \t\"latitude\": 46.243231, \r\n  \t\"longitude\": -117.689336\r\n    },\r\n  \"fee\": 20.0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{invalid_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{invalid_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trailhead 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "37e1d99e-3abb-422f-a49f-647ce784194f",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "text/html",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"location\": {\r\n  \t\"latitude\": 46.243231, \r\n  \t\"longitude\": -117.689336\r\n    },\r\n  \"fee\": 20.0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trailhead 200 - no jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "45b9433b-7ab0-4f09-9d70-d9933d0e4f9d",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"    const location = {",
+							"  \t\"latitude\": 46.243232, ",
+							"  \t\"longitude\": -117.689337",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(10.0);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"fee\": 10.0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trailhead 200 - invalid jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "94f39356-d5cf-4cff-8d49-4e8ee8d2b5a0",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"    const location = {",
+							"  \t\"latitude\": 46.243232, ",
+							"  \t\"longitude\": -117.689337",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(15.0);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"fee\": 15.0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trailhead 200 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "34408309-5ae5-440f-9482-a834f1f56cbf",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"    const location = {",
+							"  \t\"latitude\": 46.243231, ",
+							"  \t\"longitude\": -117.689336",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(20.0);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"location\": {\r\n  \t\"latitude\": 46.243231, \r\n  \t\"longitude\": -117.689336\r\n    },\r\n  \"fee\": 20.0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch trailhead 200 - jwt2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c916a722-60c7-4dbf-b747-248dea70a7c3",
+						"exec": [
+							"pm.test(\"200 status code\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"content is valid\", function () {",
+							"    pm.expect(pm.response.json().name).to.eq(\"Tucannon\");",
+							"    const location = {",
+							"  \t\"latitude\": 46.243232, ",
+							"  \t\"longitude\": -117.689337",
+							"    };",
+							"    pm.expect(pm.response.json().location.latitude).to.eq(location.latitude);",
+							"    pm.expect(pm.response.json().location.longitude).to.eq(location.longitude);",
+							"    pm.expect(pm.response.json().fee).to.eq(5.0);",
+							"    pm.expect(pm.response.json().trails.length).to.eq(0);",
+							"    const self_url = pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.response.json().id;",
+							"    pm.expect(pm.response.json().self).to.eq(self_url);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"location\": {\r\n  \t\"latitude\": 46.243232, \r\n  \t\"longitude\": -117.689337\r\n    },\r\n  \"fee\": 5.0\r\n}"
+				},
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign trailhead to trail 401 - invalid jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0bbff1d7-7fed-455f-ab2a-5aab7d390cfa",
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign trailhead to trail 403 - wrong jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1f302ff2-343e-40ff-a597-d04629a13fea",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign trailhead to trail 403 - invalid trail id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d203d742-e92a-44de-ba09-cc4818a94217",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{invalid_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{invalid_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign trailhead to trail 404 - invalid trailhead id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a20b79b1-4f2c-432f-9b77-472d352515cd",
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The requested item does not exist.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{invalid_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{invalid_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign trailhead to trail 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "33162c95-c6c5-4aa9-a5d0-df19fe2b57ab",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/cmd",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign trailhead to trail 204 - jwt1 - tr -> th",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "65fcab06-0386-4276-93f5-73643c62c8c1",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"const jwt1 = 'Bearer ' + pm.environment.get(\"jwt1\");",
+							"const trail_id = pm.environment.get(\"trail_id\")",
+							"const trailhead_id = pm.environment.get(\"trailhead_id\");",
+							"",
+							"// make sure trail shows trailheadId in trailheads array",
+							"const requestTrail = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trails/\" + trail_id,",
+							"    header: 'Authorization:' + jwt1,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrail, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const containsTrailhead = res.json().trailheads.includes(trailhead_id); ",
+							"        const trailheadslength = res.json().trailheads.length;",
+							"",
+							"        pm.test(\"Trail includes one trailhead\", function() {",
+							"            pm.expect(trailheadslength).to.eq(1);",
+							"        });",
+							"",
+							"        pm.test(\"Trail should include trailhead ID\", function() {",
+							"            pm.expect(containsTrailhead).to.be.true;",
+							"        });",
+							"        ",
+							"    }",
+							"});",
+							"",
+							"// make sure trailhead shows trailId in trails array",
+							"const requestTrailhead = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trailheads/\" + trailhead_id,",
+							"    header: 'Authorization:' + jwt1,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrailhead, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        console.log(res.json());",
+							"        const containsTrail = res.json().trails.includes(trail_id); ",
+							"        const trailslength = res.json().trails.length;",
+							"",
+							"        pm.test(\"Trailhead includes one trail\", function() {",
+							"            pm.expect(trailslength).to.eq(1);",
+							"        });",
+							"        pm.test(\"Trailhead should include trail ID\", function() {",
+							"            pm.expect(containsTrail).to.be.true;",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign trailhead to trail 204 - jwt1 - tr2 -> th",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0c2cb2d9-48a1-4756-82e8-78dc91bc54e1",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"const jwt1 = 'Bearer ' + pm.environment.get(\"jwt1\");",
+							"const trail_id = pm.environment.get(\"trail_id_2\")",
+							"const trailhead_id = pm.environment.get(\"trailhead_id\");",
+							"",
+							"// make sure trail shows trailheadId in trailheads array",
+							"const requestTrail = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trails/\" + trail_id,",
+							"    header: 'Authorization:' + jwt1,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrail, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        console.log(res.json());",
+							"        const containsTrailhead = res.json().trailheads.includes(trailhead_id); ",
+							"        const trailheadslength = res.json().trailheads.length;",
+							"",
+							"        pm.test(\"Trail includes one trailheads\", function() {",
+							"            pm.expect(trailheadslength).to.eq(1);",
+							"        });",
+							"        pm.test(\"Trail should include trailhead ID\", function() {",
+							"            pm.expect(containsTrailhead).to.be.true;",
+							"        });",
+							"    }",
+							"});",
+							"",
+							"// make sure trailhead shows trailId in trails array",
+							"const requestTrailhead = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trailheads/\" + trailhead_id,",
+							"    header: 'Authorization:' + jwt1,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrailhead, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        console.log(res.json());",
+							"        const containsTrail = res.json().trails.includes(trail_id); ",
+							"        const numberOfTrails = res.json().trails.length;",
+							"        pm.test(\"Trailhead should include trail ID\", function() {",
+							"            pm.expect(containsTrail).to.be.true;",
+							"        });",
+							"        pm.test(\"Trailhead should include two trails\", function() {",
+							"            pm.expect(numberOfTrails).to.eq(2);",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_2}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_2}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign trailhead to trail 403 - already assigned - tr -> th",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "18065c4f-fe62-40c7-92a6-ba763eac3d5a",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That content already exists and cannot be added again.\");",
+							"});",
+							"",
+							"const jwt1 = 'Bearer ' + pm.environment.get(\"jwt1\");",
+							"const trail_id = pm.environment.get(\"trail_id\")",
+							"const trailhead_id = pm.environment.get(\"trailhead_id\");",
+							"",
+							"// make sure trail's trailheads length is still 1",
+							"const requestTrail = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trails/\" + pm.environment.get(\"trail_id\"),",
+							"    header: 'Authorization:' + jwt1,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrail, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const trailheadsLength = res.json().trailheads.length; ",
+							"        pm.test(\"Trail only includes one trailhead\", function() {",
+							"            pm.expect(trailheadsLength).to.eq(1);",
+							"        });",
+							"    }",
+							"});",
+							"",
+							"// make sure trailhead still only has one trail",
+							"const requestTrailhead = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.environment.get(\"trailhead_id\"),",
+							"    header: 'Authorization:' + jwt1,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrailhead, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const trailsLength = res.json().trails.length; ",
+							"        pm.test(\"Trailhead has two trail connections\", function() {",
+							"            pm.expect(trailsLength).to.eq(2);",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign trailhead to trail 204 - jwt2 - tr7 -> th4",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "25fa8eab-26ba-4130-87ea-1cd9ad571c8a",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"const jwt = 'Bearer ' + pm.environment.get(\"jwt2\");",
+							"const trail_id = pm.environment.get(\"trail_id_7\")",
+							"const trailhead_id = pm.environment.get(\"trailhead_id_4\");",
+							"",
+							"// make sure trail shows trailheadId in trailheads array",
+							"const requestTrail = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trails/\" + trail_id,",
+							"    header: 'Authorization:' + jwt,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrail, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const containsTrailhead = res.json().trailheads.includes(trailhead_id); ",
+							"        pm.test(\"Trail should include trailhead ID\", function() {",
+							"            pm.expect(containsTrailhead).to.be.true;",
+							"        });",
+							"    }",
+							"});",
+							"",
+							"// make sure trailhead shows trailId in trails array",
+							"const requestTrailhead = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trailheads/\" + trailhead_id,",
+							"    header: 'Authorization:' + jwt,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrailhead, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const containsTrail = res.json().trails.includes(trail_id); ",
+							"        pm.test(\"Trailhead should include trail ID\", function() {",
+							"            pm.expect(containsTrail).to.be.true;",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_7}}/trailheads/{{trailhead_id_4}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_7}}",
+						"trailheads",
+						"{{trailhead_id_4}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign trailhead to trail 204 - jwt2 - tr7 -> th5",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e5b40a00-53f6-4e17-904e-80df21001f0d",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"const jwt = 'Bearer ' + pm.environment.get(\"jwt2\");",
+							"const trail_id = pm.environment.get(\"trail_id_7\")",
+							"const trailhead_id = pm.environment.get(\"trailhead_id_5\");",
+							"",
+							"// make sure trail shows trailheadId in trailheads array",
+							"const requestTrail = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trails/\" + trail_id,",
+							"    header: 'Authorization:' + jwt,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrail, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const containsTrailhead = res.json().trailheads.includes(trailhead_id); ",
+							"        pm.test(\"Trail should include trailhead ID\", function() {",
+							"            pm.expect(containsTrailhead).to.be.true;",
+							"        });",
+							"    }",
+							"});",
+							"",
+							"// make sure trailhead shows trailId in trails array",
+							"const requestTrailhead = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trailheads/\" + trailhead_id,",
+							"    header: 'Authorization:' + jwt,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrailhead, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const containsTrail = res.json().trails.includes(trail_id); ",
+							"        pm.test(\"Trailhead should include trail ID\", function() {",
+							"            pm.expect(containsTrail).to.be.true;",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_7}}/trailheads/{{trailhead_id_5}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_7}}",
+						"trailheads",
+						"{{trailhead_id_5}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove trailhead from trail 401 - no jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9c55fc8b-c2da-41be-8d0b-8f761bea9308",
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove trailhead from trail 401 - invalid jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "48bcb7c5-94b7-4f43-85b9-a6013320a56f",
+						"exec": [
+							"pm.test(\"401 status code\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove trailhead from trail 403 - wrong jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0f391167-6702-4578-98d8-d3d6f67b25bd",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove trailhead from trail 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2138f1d9-4f8c-4c42-9387-0a84575802a8",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/csv",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove trailhead from trail 204 - jwt1 - th still related to tr2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c10bf197-9e87-44f8-85b6-a6f6bc899dde",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"const jwt = 'Bearer ' + pm.environment.get(\"jwt1\");",
+							"const trail_id = pm.environment.get(\"trail_id\")",
+							"const trailhead_id = pm.environment.get(\"trailhead_id\");",
+							"",
+							"// make sure trail does not show trailhead ID in trailheads array",
+							"const requestTrail = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trails/\" + trail_id,",
+							"    header: 'Authorization:' + jwt,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrail, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const containsTrailhead = res.json().trailheads.includes(trailhead_id); ",
+							"        const numberOfTrailheads = res.json().trailheads.length;",
+							"        pm.test(\"Trail should not include trailhead ID\", function() {",
+							"            pm.expect(containsTrailhead).to.be.false;",
+							"        });",
+							"        pm.test(\"Trail not related to any trailheads\", function() {",
+							"            pm.expect(numberOfTrailheads).to.eq(0);",
+							"        });",
+							"    }",
+							"});",
+							"",
+							"// make sure trailhead does not show trail ID in trails array",
+							"const requestTrailhead = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trailheads/\" + trailhead_id,",
+							"    header: 'Authorization:' + jwt,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrailhead, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const containsTrail = res.json().trails.includes(trail_id); ",
+							"        const numberOfTrails = res.json().trails.length;",
+							"        pm.test(\"Trailhead should not include trail ID\", function() {",
+							"            pm.expect(containsTrail).to.be.false;",
+							"        });",
+							"        pm.test(\"Trailhead still related to a trail\", function() {",
+							"            pm.expect(numberOfTrails).to.eq(1);",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}",
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "remove trailhead from trail 204 - jwt2 - tr7 still related to th4",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f564e47b-04bf-4880-83bd-fb5d802b2b26",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"const jwt = 'Bearer ' + pm.environment.get(\"jwt2\");",
+							"const trail_id = pm.environment.get(\"trail_id_7\")",
+							"const trailhead_id = pm.environment.get(\"trailhead_id_5\");",
+							"",
+							"// make sure trail does not show trailhead ID in trailheads array",
+							"const requestTrail = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trails/\" + trail_id,",
+							"    header: 'Authorization:' + jwt,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrail, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const containsRemovedTrailhead = res.json().trailheads.includes(trailhead_id); ",
+							"        const trailheadsLength = res.json().trailheads.length;",
+							"        pm.test(\"Trail should not include removed trailhead ID\", function() {",
+							"            pm.expect(containsRemovedTrailhead).to.be.false;",
+							"        });",
+							"        pm.test(\"Trail should still include other added trailhead ID\", function() {",
+							"            pm.expect(trailheadsLength).to.eq(1);",
+							"        });",
+							"    }",
+							"});",
+							"",
+							"// make sure trailhead does not show trail ID in trails array",
+							"const requestTrailhead = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trailheads/\" + trailhead_id,",
+							"    header: 'Authorization:' + jwt,",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrailhead, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        const containsTrail = res.json().trails.includes(trail_id); ",
+							"        const trailsLength = res.json().trails.length;",
+							"        pm.test(\"Trailhead should not include trail ID\", function() {",
+							"            pm.expect(containsTrail).to.be.false;",
+							"        });",
+							"        pm.test(\"Trailhead not related to other trails\", function() {",
+							"            pm.expect(trailsLength).to.eq(0);",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_7}}/trailheads/{{trailhead_id_5}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_7}}",
+						"trailheads",
+						"{{trailhead_id_5}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 401- no jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "32ed8de4-1a31-4ce0-888e-4b19cd20ffb2",
+						"exec": [
+							"pm.test(\"401 unauthorized\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 401- invalid jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7db1cc03-0170-4321-a5d1-ae4ffa87ba5d",
+						"exec": [
+							"pm.test(\"401 unauthorized\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     pm.expect(pm.response.json().error).to.eq(\"The user cannot be authenticated.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 401- wrong jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "391acddf-14f8-4d58-8752-033b4658d0b1",
+						"exec": [
+							"pm.test(\"403 forbidden\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"",
+							"pm.test(\"401 error message\", function () {",
+							"     pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 403 - invalid trail id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3392f01c-4475-47c8-aa69-43395323afee",
+						"exec": [
+							"pm.test(\"403 status code\", function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test(\"403 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"That action is forbidden for the authenticated user.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{invalid_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{invalid_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "150c00d4-6b29-4c52-bff6-7e2f055798e9",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/plain",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 204 - jwt1 - related trailhead",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "74cb51db-970e-48fc-ac8a-a8547cb68e81",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"// make sure trailhead doesn't show trailid in trails array",
+							"const requestTrailhead = {",
+							"    url: pm.environment.get(\"app_url\") + \"/trailheads/\" + pm.environment.get(\"trailhead_id\"),",
+							"    method: \"GET\"",
+							"};",
+							"",
+							"pm.sendRequest(requestTrailhead, (err, res) => {",
+							"    if (err) {",
+							"        console.log(err);",
+							"    } else {",
+							"        console.log(res.json());",
+							"        const containsTrail = res.json().trails.includes(pm.environment.get(\"trail_id\")); ",
+							"        pm.test(\"Trailhead should NOT include trail ID\", function() {",
+							"            pm.expect(containsTrail).to.be.false;",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 204 - jwt1 - no related trailheads",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "53d777fc-297f-4e07-aad1-78644d3c8b54",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 204 - jwt1 - trail_id_3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e817e81b-dd86-488f-aed7-ae5c4dc74c42",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_3}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_3}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 204 - jwt1 - trail_id_4",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2b6776a2-bd14-40cf-95ba-b0c3de65dc62",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_4}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_4}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 204 - jwt1 - trail_id_5",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "129f87c7-f230-4218-8a85-5471c784ea34",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_5}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_5}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 204 - jwt1 - trail_id_6",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "bc4bd785-5592-4487-ba04-a4a09a1d0128",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_6}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_6}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trail 204 - jwt2 - trail_id_7",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f9f78f1c-b258-48d4-be14-097da7f98d28",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"// clear all environment variables except jwt and user_id variables",
+							"pm.environment.unset(\"trail_id\");",
+							"pm.environment.unset(\"trail_id_2\");",
+							"pm.environment.unset(\"trail_id_3\");",
+							"pm.environment.unset(\"trail_id_4\");",
+							"pm.environment.unset(\"trail_id_5\");",
+							"pm.environment.unset(\"trail_id_6\");",
+							"pm.environment.unset(\"trail_id_7\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trails/{{trail_id_7}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trails",
+						"{{trail_id_7}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trailhead 204 - no jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1c07245b-af04-4bff-9d57-d7e6cba2c06f",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trailhead 204 - invalid jwt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9139112f-837f-4eb8-8d07-c503c54e64d3",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{invalid_jwt}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id_2}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id_2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trailhead 404 - invalid trailhead id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6895c8f7-4d52-4c19-a5ef-5f879d1a18f8",
+						"exec": [
+							"pm.test(\"404 status code\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"404 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The requested item does not exist.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"type": "text",
+						"value": "text/html",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{invalid_id}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{invalid_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trailhead 406 - accept not JSON",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "187f70b4-4e48-41b5-b9b1-0ee0540af6fa",
+						"exec": [
+							"pm.test(\"406 status code\", function () {",
+							"    pm.response.to.have.status(406);",
+							"});",
+							"",
+							"pm.test(\"406 error message\", function () {",
+							"    pm.expect(pm.response.json().error).to.eq(\"The request's accept type is not valid.\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "text/html",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id_3}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id_3}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trailhead 204 - jwt1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "aaf97661-23e4-467d-bb91-2764a8b90a60",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id_3}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id_3}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trailhead 204 - jwt2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1facc4e9-435b-44d6-afbc-79c6f2f6ba61",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id_4}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id_4}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trailhead 204 - jwt2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a9f65524-1cfc-471c-8168-8b64a9ceca93",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id_5}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id_5}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete trailhead 204 - jwt2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "293738db-2cc0-440e-9ff0-8a99317c3c15",
+						"exec": [
+							"pm.test(\"204 status code\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"// clear all environment variables except jwt and user_id variables",
+							"pm.environment.unset(\"trailhead_id\");",
+							"pm.environment.unset(\"trailhead_id_2\");",
+							"pm.environment.unset(\"trailhead_id_3\");",
+							"pm.environment.unset(\"trailhead_id_4\");",
+							"pm.environment.unset(\"trailhead_id_5\");",
+							"pm.environment.unset(\"trailhead_id_6\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{app_url}}/trailheads/{{trailhead_id_6}}",
+					"host": [
+						"{{app_url}}"
+					],
+					"path": [
+						"trailheads",
+						"{{trailhead_id_6}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
