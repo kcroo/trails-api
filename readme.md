@@ -1,5 +1,7 @@
 # Trails REST API
 
+[Live website link for authentication](https://trails-api.wl.r.appspot.com/)
+
 This API tracks Trails, Trailheads, and Users. Users are authenticated using OAuth 2.0 and Google's People API. Trails can be related to multiple trailheads, and trailheads can be related to multiple trails. Each trail belongs to one user. Users can create, view, modify, and delete only trails that belong to them. Trailheads can be viewed, modified, or deleted by any user. All data is stored in Google's Datastore, a NoSQL database.
 
 
